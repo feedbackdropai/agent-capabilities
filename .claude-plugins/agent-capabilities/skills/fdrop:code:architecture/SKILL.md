@@ -1,0 +1,37 @@
+---
+name: fdrop:code:architecture
+description: Shared architecture requirements and conventions. Use when: creating or moving files/folders, deciding where code belongs (common/ vs feature-specific), adding a new feature module, extracting shared code, setting up barrel exports, or reviewing code placement.
+allowed-tools: Read, Write, Edit, Glob, Grep
+---
+
+# Architecture
+
+This project may be a single-package repo or a pnpm monorepo. In a monorepo, each package under `packages/` has its own architecture layered on these shared rules.
+
+**CRITICAL:** Every line of code you write MUST comply with all rules in the below documentation. These are requirements, not guidelines. Consistent style makes the codebase readable and maintainable.
+
+**Precedence:** Package-specific docs override framework docs, which override shared rules, where they explicitly diverge.
+
+## Required Reading
+
+### Shared (always read)
+
+- [folder-structure.md](./docs/folder-structure.md) – Monorepo folder organization, `common/` pattern, domain folders
+- [architecture-decisions.md](./docs/architecture-decisions.md) – Shared architectural patterns
+
+### Framework (read when touching a package that uses that framework)
+
+Determine which package(s) you are working in from the file paths in your task. Check the package's dependencies (`package.json`) to identify which framework it uses, then read the matching docs.
+
+**React / Preact:**
+- [react/architecture-decisions.md](./docs/react/architecture-decisions.md) – Component structure, hooks, naming, JSX domain folders
+
+**TanStack Start:**
+- [tanstack-start/architecture-decisions.md](./docs/tanstack-start/architecture-decisions.md) – Features/screens, serverFns, queries, code placement hierarchy
+
+**NestJS:**
+- [nestjs/architecture-decisions.md](./docs/nestjs/architecture-decisions.md) – Route modules, DTOs, guards, jobs, kebab-case naming
+
+### Package-Specific (read when touching that package)
+
+For each affected package, check if a subdirectory exists under `docs/` matching that package name. If it does, read all docs in it. Packages without dedicated docs follow only the shared and framework docs.

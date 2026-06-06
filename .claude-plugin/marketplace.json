@@ -1,0 +1,15 @@
+{
+	"name": "feedbackdrop",
+	"owner": {
+		"name": "FeedbackDrop",
+		"email": "david@feedbackdrop.ai"
+	},
+	"plugins": [
+		{
+			"name": "agent-capabilities",
+			"source": "../.claude-plugins/agent-capabilities",
+			"description": "FeedbackDrop's collection of Agent Capabilities for AI coding assistants.",
+			"version": "0.0.1"
+		}
+	]
+}

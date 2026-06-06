@@ -1,0 +1,9 @@
+{
+	"name": "agent-capabilities",
+	"version": "0.0.1",
+	"description": "FeedbackDrop's collection of Agent Capabilities for AI coding assistants.",
+	"author": {
+		"name": "FeedbackDrop",
+		"email": "david@feedbackdrop.ai"
+	}
+}
