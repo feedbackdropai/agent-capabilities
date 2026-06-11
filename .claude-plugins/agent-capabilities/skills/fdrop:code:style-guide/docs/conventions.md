@@ -25,16 +25,20 @@
 
 ### File Naming
 
-File naming conventions may differ by package or framework. Check existing files in the same directory and match their convention. Common patterns:
+The file name always matches the **exported item's name** — only the casing varies by package or framework.
+
+Resolve the casing in this order:
+
+1. **Existing files in the same directory** — match their convention
+2. **The package's framework doc** — e.g., NestJS packages use \`kebab-case.{suffix}.ts\` (see the architecture skill's framework docs)
+3. **Default** (new/empty directory, no framework rule): camelCase matching the export name — \`buildVersionedLabel.ts\`
 
 | Convention                         | Example                        |
 | ---------------------------------- | ------------------------------ |
 | camelCase matching the export name | \`buildVersionedLabel.ts\`       |
-| kebab-case                         | \`get-frontend-domain.ts\`       |
+| kebab-case (framework-mandated)    | \`get-frontend-domain.ts\`       |
 
-**Classes** always use PascalCase matching the class name regardless of package (e.g., \`Person.ts\`).
-
-**Rule:** When in doubt, check existing files in the same directory and match their convention.
+**Classes** always use PascalCase matching the class name regardless of package (e.g., \`Person.ts\`), unless the framework doc says otherwise (e.g., NestJS services are \`events.service.ts\`).
 
 ## Variables
 

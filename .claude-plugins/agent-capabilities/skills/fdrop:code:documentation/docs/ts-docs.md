@@ -36,15 +36,22 @@ Write a brief description explaining **what** it does and **why** you’d use it
 
 ### Parameters (`@param`)
 
-Document each parameter with its name and purpose. Let TypeScript handle the type.
+Document each parameter with its name and purpose. Let TypeScript handle the type. For object-args functions, `@param` tags document the destructured property names directly.
 
 ```typescript
+interface Params {
+	id: string;
+	options?: FetchOptions;
+}
+
 /**
  * Fetches a user by their unique identifier.
  * @param id - The user's unique identifier
  * @param options - Configuration for the fetch request
  */
-function getUser(id: string, options?: FetchOptions): Promise<User>;
+export const getUser = async ({ id, options }: Params) => {
+	// ...
+};
 ```
 
 ### Thrown Errors (`@throws`)
@@ -70,7 +77,7 @@ Include for complex APIs or non-obvious usage patterns. Keep examples minimal an
  * @param fn - Function to debounce
  * @param delay - Delay in milliseconds
  * @example
- * const debouncedSave = debounce(save, 300);
+ * const debouncedSave = debounce({ fn: save, delay: 300 });
  * input.addEventListener('input', debouncedSave);
  */
 ```
@@ -184,6 +191,12 @@ interface ApiConfig {
 ## Complete Example
 
 ```typescript
+interface Params<T> {
+	fn: () => Promise<T>;
+	maxAttempts?: number;
+	baseDelay?: number;
+}
+
 /**
  * Retries an async operation with exponential backoff.
  *
@@ -195,13 +208,9 @@ interface ApiConfig {
  * @throws {RetryExhaustedError} When all retry attempts fail
  *
  * @example
- * const data = await retry(() => fetch('/api/data'), 3, 1000);
+ * const data = await retry({ fn: () => fetch('/api/data'), maxAttempts: 3 });
  */
-export async function retry<T>(
-	fn: () => Promise<T>,
-	maxAttempts: number = 3,
-	baseDelay: number = 1000
-): Promise<T> {
+export const retry = async <T>({ fn, maxAttempts = 3, baseDelay = 1000 }: Params<T>) => {
 	...
-}
+};
 ```

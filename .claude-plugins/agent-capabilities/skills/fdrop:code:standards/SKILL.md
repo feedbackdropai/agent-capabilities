@@ -29,6 +29,10 @@ Before writing any code, load these skills:
 - Load `/fdrop:code:style-guide` — function/class patterns, import/export rules, enum rules, and TypeScript rules.
 - Load `/fdrop:code:documentation` — TSDoc/JSDoc standards for TypeScript.
 
+## Enforcement
+
+Mechanical rules are lint-enforced; judgment rules live in the docs above. See [enforcement.md](./docs/enforcement.md) for the rule→lint mapping. If the repo's lint config and a doc disagree on a mechanical rule, the lint config wins — report the drift.
+
 ## Workflow
 
 After loading the child skills above, apply their rules to every code change you make:

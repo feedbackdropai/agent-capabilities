@@ -1,22 +1,33 @@
 # Imports/Exports
 
-## One Item Per File - NO EXCEPTIONS
+## One Exported Item Per File
 
-- Each function, class, interface, type, enum, or constant should have its own dedicated file
-- The file name should match the exported item name, unless a different pattern already exists in the codebase
-- **Only exception:** `Params` interfaces for function parameters and `ConstructorParams` for class constructors may remain in the same file as their associated function/class
+- Each **exported** function, class, interface, type, enum, or constant has its own dedicated file
+- The file name matches the exported item name (cased per the package's file-naming convention)
+- Non-exported items (private helpers, local types) may co-locate with the export they serve
 
-### This Rule Is Not Negotiable
+### The Closed Exception List
 
-Do NOT put multiple items in the same file. Ever.
+These are the **only** cases where a file may contain more than one item. Every exception has a mechanical criterion — there is no judgment call:
+
+| # | Exception | Criterion |
+|---|-----------|-----------|
+| 1 | `Params` / `ConstructorParams` interfaces | Stays in the file of its function/class; not exported independently |
+| 2 | Private helpers | Not exported; called only within this file (see [functions.md](./functions.md#private-helpers-may-co-locate)) |
+| 3 | Discriminated union families | A union type and its member types share one file when the members exist only as constituents of that union |
+| 4 | Enum + derived lookup map | A lookup map keyed by the enum (`Record<MyEnum, …>`) may live in the enum's file (see [enums.md](./enums.md#derived-lookup-maps-may-co-locate)) |
+
+### Multiple Exported Items — Still Not Negotiable
+
+Multiple **exported** items of independent meaning never share a file.
 
 **Rationalizations that are NOT valid:**
 
 - "The interface is only used by this constant" → Still separate files
 - "They're closely related" → Still separate files
-- "It's just a small helper" → Still separate files
+- "It's just a small helper" → If it's a helper, make it non-exported (exception 2). If it's exported, separate file.
 
-❌ BAD: Interface and constant in same file
+❌ BAD: Exported interface and exported constant in same file
 
 **`config.ts`**
 
@@ -38,7 +49,7 @@ export interface Config {
 }
 ```
 
-**`common/constants/default-config.ts`**
+**`common/constants/defaultConfig.ts`**
 
 ```typescript
 import type { Config } from '@/path/to/common/interfaces/config';
@@ -46,11 +57,36 @@ import type { Config } from '@/path/to/common/interfaces/config';
 export const defaultConfig: Config = { name: 'default' };
 ```
 
+✅ GOOD: Discriminated union family in one file (exception 3)
+
+**`common/types/syncEvent.ts`**
+
+```typescript
+import { SyncEventKind } from '@/common/enums/syncEventKind';
+
+export interface FileAddedEvent {
+	kind: SyncEventKind.FileAdded;
+	path: string;
+}
+
+export interface RecordParsedEvent {
+	kind: SyncEventKind.RecordParsed;
+	recordId: string;
+}
+
+export type SyncEvent = FileAddedEvent | RecordParsedEvent;
+```
+
+The discriminant uses enum members, not raw literals — see [enums.md](./enums.md#discriminants-use-enum-members). The enum lives in its own file in `enums/`.
+
+The members exist only as constituents of `SyncEvent` — splitting them across files would fragment one concept. If a member type starts being used independently of the union, it moves to its own file.
+
 ## Import Path Strategy
 
-**Always use the package's configured path alias for every import. No exceptions.**
+**Use the package's configured path alias for every import.**
 
-- NEVER use relative paths (`./`, `../`) — not even for sibling files, `common/` subfolders, or barrel re-exports
+- When a package defines path aliases, NEVER use relative paths (`./`, `../`) — not even for sibling files, `common/` subfolders, or barrel re-exports
+- If a package defines **no** path aliases, use relative paths consistently — and consider adding aliases
 - This applies to every file: components, constants, interfaces, types, utils, hooks, etc.
 
 ### Path Aliases
@@ -62,7 +98,7 @@ Each package defines its own path aliases in `tsconfig.json` → `compilerOption
 | `@/*`    | `import { X } from '@/common/utils/X'`    |
 | `@src/*` | `import { X } from '@src/common/utils/X'` |
 
-**Rule:** Always check the package's `tsconfig.json` `paths` field to determine the correct alias.
+**Rule:** Always check the package's `tsconfig.json` `paths` field to determine the correct alias. Do not hardcode aliases from memory.
 
 ✅ GOOD: Path alias for everything
 
@@ -73,12 +109,44 @@ import { features } from '@/features/home/components/HomeIssueDetails/common/con
 import { MockIssuePanel } from '@/features/home/components/HomeIssueDetails/components/MockIssuePanel';
 ```
 
-❌ BAD: Relative paths (even within same folder)
+❌ BAD: Relative paths in an alias-configured package
 
 ```typescript
 import { helper } from './helper';
 import { util } from '../common/utils/util';
 import { features } from './common/constants';
+```
+
+## Module Boundaries
+
+A **folder-module** (a feature, route, screen, graduated class or component — see the [architecture decisions](../../fdrop:code:architecture/docs/architecture-decisions.md#modules--the-graduation-rule)) has a public API: its `index.ts`.
+
+**The boundary rule:**
+
+- **Crossing a module boundary:** import ONLY from the module's `index.ts`. Never reach into another module's internals.
+- **Inside a module:** import directly from specific files. Deep imports within your own module are correct, not a violation.
+
+This rule is lint-enforced — see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md). The `index.ts` is the module's deliberate public API, not a directory listing.
+
+✅ GOOD: Cross-module import through the index
+
+```typescript
+// in features/reports/...
+import { ingestRecords } from '@/ingestion';
+```
+
+❌ BAD: Reaching into another module's internals
+
+```typescript
+// in features/reports/...
+import { normalizeRecord } from '@/ingestion/common/utils/normalizeRecord'; // WRONG — internal
+```
+
+✅ GOOD: Deep import within your own module
+
+```typescript
+// in ingestion/ingestRecords.ts
+import { normalizeRecord } from '@/ingestion/common/utils/normalizeRecord';
 ```
 
 ## Module Exports
@@ -90,7 +158,7 @@ import { features } from './common/constants';
 
 #### Example Function
 
-**`myNewMethod.ts`** (file name follows [per-package convention](./conventions.md#file-naming-by-package))
+**`myNewMethod.ts`** (file name follows [per-package convention](./conventions.md#file-naming))
 
 ```typescript
 export const myNewMethod = () => {
@@ -130,48 +198,27 @@ export enum MyEnum {
 }
 ```
 
-## Barrel File Scope
+## Barrel Files (`index.ts`)
 
-Barrel files (`index.ts`) should **only export items from their own directory level** — never from subfolders.
+A barrel file is the module's **public API contract** — it lists exactly what consumers may use.
 
-### Why This Matters
+**Rules:**
 
-- Keeps barrel files focused and predictable
-- Avoids circular dependency issues
-- Makes it clear where items originate
-- Consumers import from the appropriate depth
+1. **Use named re-exports** — `export { Foo } from '<path>'`, never `export *`
+2. **One export per line** — makes diffs clean and review easy
+3. **Export deliberately** — the barrel exports the module's intended public surface. It MAY re-export from subfolders when those items are intentionally public; everything it omits is internal.
+4. **Internal subfolders** (`common/utils/`, `common/interfaces/`, etc.) keep their own `index.ts` for tidy intra-module imports, but those barrels are internal — nothing outside the module imports from them (the boundary rule above).
 
-### Rule
+✅ GOOD: Barrel as deliberate public API
 
-- `MyComponent/index.ts` exports only files directly in `MyComponent/`
-- It does NOT re-export from `MyComponent/common/types/` or other subfolders
-- Consumers needing subfolder items import directly from those paths
-
-❌ BAD: Barrel re-exports from subfolders
-
-**`DataTable/index.ts`**
+**`ingestion/index.ts`**
 
 ```typescript
-export { SortableHeader } from '@/common/components/appUI/DataTable/SortableHeader';
-export { FilterDropdown } from '@/common/components/appUI/DataTable/FilterDropdown';
-export type { TableAlignment } from '@/common/components/appUI/DataTable/common/types'; // WRONG
+export { ingestRecords } from '@/ingestion/ingestRecords';
+export type { RawRecord } from '@/ingestion/common/interfaces/rawRecord';
 ```
 
-✅ GOOD: Barrel only exports its own level
-
-**`DataTable/index.ts`**
-
-```typescript
-export { SortableHeader } from '@/common/components/appUI/DataTable/SortableHeader';
-export { FilterDropdown } from '@/common/components/appUI/DataTable/FilterDropdown';
-```
-
-**Consumer imports type directly:**
-
-```typescript
-import { SortableHeader } from '@/common/components/appUI/DataTable';
-import type { TableAlignment } from '@/common/components/appUI/DataTable/common/types';
-```
+`RawRecord` is re-exported from a subfolder *on purpose* — it is part of the module's contract. `normalizeRecord` is not exported — it is internal, and the lint boundary makes that real.
 
 ## Folder Organization for Types, Interfaces, and Constants
 
@@ -184,15 +231,19 @@ Organize shared items in their own folders based on what they are:
 | Constants  | `common/constants/`  | `export const …`     |
 | Enums      | `common/enums/`      | `export enum …`      |
 
+A discriminated union family (exception 3) lives in `types/` under the union's name. An enum with its lookup map (exception 4) lives in `enums/` under the enum's name.
+
 ## Interfaces vs Types - They Are Different
 
 - **Interfaces** (`export interface`) go in `interfaces/` folder
 - **Types** (`export type`) go in `types/` folder
 - Do NOT mix them in the same folder
 
+**When to use which:** Use an `interface` for object shapes (it extends and merges cleanly). Use a `type` for everything an interface cannot express — unions, intersections, mapped types, primitives, tuples, function signatures. When either would work for an object shape, use `interface`.
+
 ✅ GOOD: Interface in interfaces folder
 
-**`common/interfaces/user-profile.ts`**
+**`common/interfaces/userProfile.ts`**
 
 ```typescript
 export interface UserProfile {
@@ -203,7 +254,7 @@ export interface UserProfile {
 
 ✅ GOOD: Type in types folder
 
-**`common/types/user-id.ts`**
+**`common/types/userId.ts`**
 
 ```typescript
 export type UserId = string;
@@ -211,7 +262,7 @@ export type UserId = string;
 
 ❌ BAD: Interface in types folder
 
-**`common/types/user-profile.ts`**
+**`common/types/userProfile.ts`**
 
 ```typescript
 export interface UserProfile {
@@ -221,7 +272,7 @@ export interface UserProfile {
 
 ❌ BAD: Type in interfaces folder
 
-**`common/interfaces/user-id.ts`**
+**`common/interfaces/userId.ts`**
 
 ```typescript
 export type UserId = string; // WRONG FOLDER
@@ -229,11 +280,11 @@ export type UserId = string; // WRONG FOLDER
 
 ## Where Non-Params Interfaces Belong
 
-The `Params` interface for a function stays with the function. **All other interfaces** go in the `interfaces/` folder.
+The `Params` interface for a function stays with the function. **All other exported interfaces** go in the `interfaces/` folder.
 
 ✅ GOOD: Params stays with function
 
-**`copy-file.ts`**
+**`copyFile.ts`**
 
 ```typescript
 interface Params {
@@ -248,7 +299,7 @@ export const copyFile = ({ sourcePath, destPath }: Params) => {
 
 ✅ GOOD: Return type interface in interfaces folder
 
-**`common/interfaces/copy-result.ts`**
+**`common/interfaces/copyResult.ts`**
 
 ```typescript
 export interface CopyResult {
@@ -257,12 +308,12 @@ export interface CopyResult {
 }
 ```
 
-❌ BAD: Non-Params interface defined in function file
+❌ BAD: Exported non-Params interface defined in function file
 
-**`copy-file.ts`**
+**`copyFile.ts`**
 
 ```typescript
-interface CopyResult {
+export interface CopyResult {
 	// SHOULD BE IN common/interfaces/
 	success: boolean;
 }
@@ -274,7 +325,7 @@ Constants are NOT types or interfaces. They go in `constants/` folder.
 
 ✅ GOOD: Constant in constants folder
 
-**`common/constants/default-config.ts`**
+**`common/constants/defaultConfig.ts`**
 
 ```typescript
 import type { Config } from '@/path/to/common/interfaces/config';
@@ -286,7 +337,7 @@ export const defaultConfig: Config = {
 
 ❌ BAD: Constant in types folder
 
-**`common/types/default-config.ts`**
+**`common/types/defaultConfig.ts`**
 
 ```typescript
 export const defaultConfig = {}; // CONSTANTS DON'T GO IN TYPES

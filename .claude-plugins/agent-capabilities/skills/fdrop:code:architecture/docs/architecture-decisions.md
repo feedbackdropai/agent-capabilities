@@ -2,16 +2,38 @@
 
 This document outlines universal architectural decisions and patterns that apply across this codebase.
 
+## Modules & the Graduation Rule
+
+A **module** is a unit of code with a public API and private internals. TypeScript enforces privacy at the file level (non-exported = invisible to everyone). Folder-level boundaries are enforced by lint — see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md).
+
+**Every concept starts as a file and earns its folder:**
+
+- **File-module (the default):** a single file holding one exported item plus any non-exported private helpers. The compiler enforces the boundary for free. Examples: a utility function, a small class, a hook.
+- **Folder-module (graduated):** when a concept needs private companions — its own utils, interfaces, enums, or constants that serve only it — it graduates to a folder with an `index.ts` as its public API.
+- **Born folders:** features, route modules, and screens are inherently multi-file concepts and start as folder-modules.
+
+**The graduation trigger is mechanical:** *needs private companion files → folder; doesn't → file.* Never create folder ceremony for a concept that fits in one file.
+
+**Boundary rules for folder-modules:**
+
+1. Cross-module imports go through the module's `index.ts` **only** — never reach into another module's internals (lint-enforced)
+2. Inside a module, deep imports between its files are correct
+3. Tests target the module's public API; internals are covered through it (a `.unit.test.ts` next to a file marks it as a public boundary; internals under a module's `common/` have no test files of their own)
+
+The rule is recursive — a graduated component folder inside a feature folder is a module within a module, each with its own boundary.
+
 ## Functional vs Class-Based Approaches
 
 **Default Preference: Functional Approach**
 
-- **Prefer functions by default** — they are simpler, more testable, and easier to reason about
-- **Use classes only when you have a clear need for:**
-    - State management (holding and mutating data over time)
-    - Complex object initialization with multiple configuration options
-    - Grouping related methods that operate on the same data structure
-    - When you need inheritance or polymorphism patterns
+Prefer functions by default — they are simpler, more testable, and easier to reason about. Create a class **if and only if at least one** of these is true:
+
+- **Mutable state persists across method calls** (a cache, a connection, accumulated data)
+- **3+ operations share injected config/dependencies** (the constructor injects once; every method uses them)
+- **Multiple implementations of a shared interface** (polymorphism is the design)
+- **The framework requires it** (e.g., NestJS DI)
+
+Static-only classes are banned — they are modules wearing costumes. See [classes.md](../../fdrop:code:style-guide/docs/classes.md#when-to-use-a-class--the-bright-line) for the full rule and examples.
 
 ## Code Placement Philosophy
 
@@ -153,11 +175,12 @@ Common signs of duplication:
 
 ## Barrel Exports (`index.ts`)
 
-Every folder that is imported by other modules must have an `index.ts` barrel file.
+A module's `index.ts` is its **public API contract** — it lists exactly what consumers may use. Everything the barrel omits is internal, and the lint boundary makes that real.
 
-1. **Use named re-exports** — `export { Foo } from './Foo'`, never `export *`
+1. **Use named re-exports** — `export { Foo } from '<path>'` (use the package's import path convention — alias when configured), never `export *`
 2. **One export per line** — makes diffs clean and review easy
-3. **Create an `index.ts` when** a folder contains 2+ files consumed outside the folder
-4. **Skip `index.ts` when** a folder is internal and only consumed by its parent file
+3. **Every folder-module has an `index.ts`** — it is the only cross-module import path
+4. **Export deliberately** — the barrel MAY re-export from subfolders when those items are intentionally public; it is an API, not a directory listing
+5. **Internal subfolders** (`common/utils/`, etc.) keep their own `index.ts` for tidy intra-module imports, but those barrels are internal — nothing outside the module imports from them
 
 Package-specific additions (e.g., import alias conventions in re-export paths) are documented in each package's architecture doc.

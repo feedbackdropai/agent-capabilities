@@ -2,12 +2,15 @@
 
 Use a `common/` folder pattern to organize shared code — it keeps related code local, makes dependency scope visible at a glance, and scales by promoting code upward only when reuse is proven.
 
+The folder trees in this document describe **folder-modules** — see [Modules & the Graduation Rule](./architecture-decisions.md#modules--the-graduation-rule). A feature folder is a module: its `index.ts` is the public API, and everything under its `common/` is internal.
+
 ## Rules
 
 1. **Keep `common/` close to consumers** – Place it at the lowest level where all dependent code can access it
 2. **Promote when reused** – Only move code to a parent `common/` when 2+ modules at that level need it
 3. **Avoid circular dependencies** – When moving code up, update all import paths and verify no cycles are created
 4. **Organize by type** – Use subdirectories like `utils/`, `types/`, `services/` within `common/`
+5. **Graduate, don't pre-build** – A concept starts as a single file and becomes a folder only when it needs private companions. Never create folder ceremony for a one-file concept
 
 ## Utils vs Services
 
@@ -55,22 +58,22 @@ src/
 ├─ common/ # Shared across ALL modules
 │ ├─ utils/
 │ │ ├─ index.ts
-│ │ └─ format-date.ts
+│ │ └─ formatDate.ts
 │ ├─ types/
 │ │ ├─ index.ts
-│ │ └─ api-response.ts
+│ │ └─ apiResponse.ts
 │ ├─ services/
 │ │ ├─ index.ts
-│ │ └─ api-client.ts
+│ │ └─ ApiClient.ts
 │
 ├─ feature-a/
 │ ├─ common/ # Shared within feature-a only
 │ │ ├─ utils/
 │ │ │ ├─ index.ts
-│ │ │ └─ feature-a-helper.ts
+│ │ │ └─ featureAHelper.ts
 │ │ ├─ types/
 │ │ │ ├─ index.ts
-│ │ │ └─ feature-a-options.ts
+│ │ │ └─ featureAOptions.ts
 │ ├─ feature-a.ts
 │ └─ index.ts
 │
@@ -78,7 +81,7 @@ src/
 │ ├─ common/ # Shared within feature-b only
 │ │ ├─ utils/
 │ │ │ ├─ index.ts
-│ │ │ └─ feature-b-helper.ts
+│ │ │ └─ featureBHelper.ts
 │ ├─ feature-b.ts
 │ └─ index.ts
 ```
@@ -87,7 +90,7 @@ src/
 
 - `src/common/` → Used by **both** `feature-a/` and `feature-b/`
 - `src/feature-a/common/` → Used **only** within `feature-a/`
-- If `feature-a-helper.ts` is later needed by `feature-b`, promote it to `src/common/utils/`
+- If `featureAHelper.ts` is later needed by `feature-b`, promote it to `src/common/utils/`
 
 ## Cross-Package Sharing (`packages/shared/`)
 

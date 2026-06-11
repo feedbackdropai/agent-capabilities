@@ -63,10 +63,14 @@ TanStack Query options are centralized in `queries/` folders:
 
 ```typescript
 // features/issues/queries/issuesQueryOptions.ts
-export const issuesQueryOptions = (params: IssuesSearchParams) =>
+interface Params {
+	searchParams: IssuesSearchParams;
+}
+
+export const issuesQueryOptions = ({ searchParams }: Params) =>
 	queryOptions({
-		queryKey: [QueryKey.Issues, params],
-		queryFn: () => findAllIssuesServerFn({ data: params }),
+		queryKey: [QueryKey.Issues, searchParams],
+		queryFn: () => findAllIssuesServerFn({ data: searchParams }),
 	});
 ```
 
@@ -76,7 +80,11 @@ Custom hooks that wrap queries or manage state:
 
 ```typescript
 // features/issues/hooks/useIssues.ts
-export const useIssues = (params: IssuesSearchParams) => {
-	return useSuspenseQuery(issuesQueryOptions(params));
+interface Params {
+	searchParams: IssuesSearchParams;
+}
+
+export const useIssues = ({ searchParams }: Params) => {
+	return useSuspenseQuery(issuesQueryOptions({ searchParams }));
 };
 ```
