@@ -1,25 +1,25 @@
 # Enforcement
 
-Rules split into two kinds: **mechanical rules** (lint-enforced — the build says no) and **judgment rules** (doc-enforced — prose guides humans and agents). Every rule that *can* move to lint *should*: lint enforcement is free for agents (verification gates already run `check`/lint, and self-heal loops fix violations automatically), it never drifts, and it depersonalizes review.
+Rules split into two kinds: **mechanical rules** (lint-enforced — the build says no) and **judgment rules** (doc-enforced — prose guides humans and agents). Every rule that *can* move to lint *should*: lint enforcement is free for agents (verification gates already run `check`, and self-heal loops fix violations automatically), it never drifts, and it depersonalizes review.
 
 **Discipline:** when a rule lives in lint, its doc section shrinks to the *why* plus a pointer here. Never maintain the full rule in both places — the two copies will drift, and the lint config silently wins.
 
-Lint configs live in each consuming repo, not in this plugin. This document is the recipe.
+Lint configs live in each consuming repo, not in this plugin. This document is the recipe. The linter is **Biome**; gaps Biome can't cover are filled by CI companions (dependency-cruiser, knip) or Biome GritQL plugins. Verify rule names against the installed Biome version — some listed rules are in the `nursery` group.
 
-## Mechanical Rules → Lint Mapping
+## Mechanical Rules → Enforcement Mapping
 
-| Rule | Source doc | ESLint enforcement |
-|------|-----------|--------------------|
-| File growth cap (~250 lines) | functions.md | `max-lines: ["error", { "max": 250, "skipBlankLines": true, "skipComments": true }]` |
-| Function size cap | functions.md | `max-lines-per-function` (set per repo; exempt orchestration functions via the documented exception) |
-| Module boundaries (cross-module imports via `index.ts` only) | imports-exports.md, architecture-decisions.md | `eslint-plugin-boundaries` (preferred) or `import/no-internal-modules` with module patterns, or dependency-cruiser in CI |
-| No relative paths (alias-configured packages) | imports-exports.md | `no-restricted-imports: ["error", { "patterns": ["./*", "../*"] }]` |
-| Static-only classes banned | classes.md | `@typescript-eslint/no-extraneous-class` |
-| `import type` for type-only imports | typescript.md | `@typescript-eslint/consistent-type-imports` |
-| No `any` | typescript.md | `@typescript-eslint/no-explicit-any` |
-| No `const enum` | enums.md | `no-restricted-syntax: ["error", { "selector": "TSEnumDeclaration[const=true]", "message": "const enum is banned — use a plain enum" }]` |
-| No unused exports | architecture-decisions.md | `knip` or `ts-prune` in CI |
-| Circular dependencies | architecture-decisions.md | `import/no-cycle` or dependency-cruiser |
+| Rule | Source doc | Enforcement |
+|------|-----------|-------------|
+| Static-only classes banned | classes.md | Biome `complexity/noStaticOnlyClass` |
+| `import type` for type-only imports | typescript.md | Biome `style/useImportType` |
+| No `any` | typescript.md | Biome `suspicious/noExplicitAny` |
+| No `const enum` | enums.md | Biome `suspicious/noConstEnum` |
+| Circular dependencies | architecture-decisions.md | Biome `nursery/noImportCycles`, or dependency-cruiser |
+| Function size cap | functions.md | Biome `nursery/noExcessiveLinesPerFunction` (exempt orchestration functions via the documented exception) |
+| File growth cap (~250 lines) | functions.md | **Biome gap** — no file-length rule. Options: small CI script (`wc -l` over `src/**/*.ts`), or a Biome GritQL plugin |
+| Module boundaries (cross-module imports via `index.ts` only) | imports-exports.md, architecture-decisions.md | dependency-cruiser rule set (most robust), or Biome `noRestrictedImports`/`noPrivateImports` where the installed version supports pattern-based restrictions |
+| No relative paths (alias-configured packages) | imports-exports.md | Biome `style/noRestrictedImports` if pattern support available; otherwise a GritQL plugin matching `./`/`../` specifiers, or dependency-cruiser |
+| No unused exports | architecture-decisions.md | `knip` in CI |
 
 ## Doc-Enforced Rules (judgment — not fully lintable)
 
@@ -27,19 +27,21 @@ These rely on the standards docs, code review, and the agents that load these sk
 
 | Rule | Source doc | Why not lintable |
 |------|-----------|------------------|
-| One exported item per file (+ the closed exception list) | imports-exports.md | Exceptions (union families, enum+map) need semantic checks; partially approximable with custom rules |
+| One exported item per file (+ the closed exception list) | imports-exports.md | Exceptions (union families, enum+map) need semantic checks |
 | Graduation rule (file → folder when companions appear) | architecture-decisions.md | Requires judging what counts as a companion |
 | Class vs functions bright line | classes.md | Requires judging state/config/polymorphism intent |
-| Prefer enums over union types | enums.md | A union type is not inherently wrong — context decides |
+| Prefer enums over union types; enum discriminants | enums.md | A union type is not inherently wrong — context decides |
+| Object args everywhere (imposed-signature exception) | functions.md | Imposed signatures need semantic recognition |
 | Code placement (lowest common ancestor, promote on reuse) | folder-structure.md | Requires knowing the consumer set |
+| Boundary testing (test files only at module boundaries) | unit-testing.md | Requires module classification |
 | Naming for reuse, naming consistency | conventions.md | Semantic |
 | When to document (TSDoc threshold) | ts-docs.md | Semantic |
 
 ## Recommended Adoption Order
 
-1. `max-lines`, `no-extraneous-class`, `consistent-type-imports`, `no-explicit-any`, `no-const-enum` — drop-in, low conflict
-2. `no-restricted-imports` (relative paths) — verify aliases are configured in every package first
-3. Module boundaries (`eslint-plugin-boundaries`) — define the module patterns (features, routes, graduated folders), run as `warn` for one sprint, then promote to `error`
-4. `knip` / dependency-cruiser in CI — batch-fix existing violations first
+1. Biome rules already in `recommended` or drop-in: `noStaticOnlyClass`, `useImportType`, `noExplicitAny`, `noConstEnum` — enable as `error`
+2. `noImportCycles` + `noExcessiveLinesPerFunction` (nursery — pin Biome version)
+3. Module boundaries via dependency-cruiser in CI — define module patterns (features, routes, graduated folders), run as warnings for one sprint, then promote to errors
+4. File-length CI check + `knip` — batch-fix existing violations first
 
 New code follows all rules immediately; existing code converts on touch — no big-bang migration.

@@ -107,7 +107,7 @@ Functions exceeding 50 lines or handling multiple responsibilities should be spl
 | 50-80 | Review — look for extractable logic  |
 | 80+   | Needs splitting                      |
 
-File growth is capped mechanically by the `max-lines` lint rule — see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md).
+File growth is capped mechanically (~250 lines) — see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md) for the Biome/CI setup.
 
 **Note:** React components and hooks have different thresholds — see the `fdrop:task:refactor-plan` skill for React-specific limits.
 

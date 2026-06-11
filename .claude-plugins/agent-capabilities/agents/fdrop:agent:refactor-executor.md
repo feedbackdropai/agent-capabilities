@@ -174,7 +174,7 @@ Run the resolved `check`, `test-unit`, and `test-unit-coverage` commands on the 
 **Gates:**
 - Types check clean.
 - Tests pass.
-- Coverage at 100% on modified source files (skip this gate when `skip-tests: true` was specified — coverage verification requires Phase 4 to have run).
+- Coverage at 100% on modified source files (skip this gate when `skip-tests: true` was specified — coverage verification requires Phase 4 to have run). Coverage may be reached through module-boundary tests rather than per-file test files — the metric is per source file, regardless of which test file exercises it (see the unit-test-standards' Module Boundary Testing section).
 
 If files span multiple packages, run their verification in **parallel** using parallel tool calls. All packages must pass before proceeding.
 

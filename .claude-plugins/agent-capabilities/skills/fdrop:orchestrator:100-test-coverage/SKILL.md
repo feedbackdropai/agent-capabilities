@@ -58,7 +58,10 @@ Then run the resolved `check` command to verify no pre-existing type or lint err
 
 From the coverage table, find all **source files** where any metric (statements, branches, functions, or lines) is below 100%.
 
-Group these files by their **parent directory**. If multiple uncovered files share the same parent directory, that directory becomes one target. If an uncovered file is the only one in its directory, use that directory as a single-file-scope target. Do not group higher than the immediate parent — overly broad targets dilute agent focus.
+Group these files by their **test target**:
+
+- **Module internals** (files under a module's `common/` — parent folder is a feature/route/screen/component/class folder, not a root layer) are covered through their owning module's boundary tests. Target the **owning module folder**, so the agent can extend the boundary's test file.
+- **Boundary files** group by their **parent directory** as before. If multiple uncovered files share the same parent directory, that directory becomes one target. If an uncovered file is the only one in its directory, use that directory as a single-file-scope target. Do not group higher than the immediate parent (except for internals, above) — overly broad targets dilute agent focus.
 
 **Folder size check:** After grouping, count the uncovered source files in each target folder. If a folder contains more than 15 uncovered files, split it into sub-targets by immediate subdirectory. If no subdirectory structure exists (all files are flat in one folder), split alphabetically into chunks of 15. The sub-agent cap is 20 files and punts the rest — splitting preemptively ensures all files get processed.
 

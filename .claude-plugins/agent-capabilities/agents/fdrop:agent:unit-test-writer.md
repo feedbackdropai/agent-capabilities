@@ -88,7 +88,12 @@ Reuse existing mocks and fixtures rather than recreating them.
 
 **Process files in dependency order** — leaf-level utility files before files that import them. This ensures mocks for dependencies are established before testing their consumers. To determine order: scan the `import` statements of each discovered file (do not read the full file yet) and build a list where files with no local imports come first, followed by files that import them. If circular imports exist, process either file first.
 
-**For each source file, check for an existing test file** (a co-located `*.unit.test.ts` or `*.unit.test.tsx` file) and **categorize:**
+**Classify each file as boundary or internal** per the Module Boundary Testing section of the loaded unit-test-standards:
+
+- **Boundary** — a module's public surface (root-layer `common/` leaf modules, feature public exports, `.service`/`.resolver`/`.controller` files, a graduated folder's main file). Gets a co-located test file; proceed with the categorization below.
+- **Internal** — a file under a module's `common/` (parent folder is a feature/route/screen/component/class folder, not a root layer). Does NOT get a dedicated test file. Its **test target** is the owning module's boundary file(s) that (transitively) import it — extend the boundary's test file to cover the internal's code paths. If the internal already has a dedicated test file, leave that file untouched and flag it in the report as a migration candidate.
+
+**For each boundary file, check for an existing test file** (a co-located `*.unit.test.ts` or `*.unit.test.tsx` file) and **categorize:**
 - **No test file exists** — will write a new test file.
 - **Test file exists but coverage is incomplete** — will add missing tests.
 - **Test file exists but does not follow conventions** — will rewrite to match conventions, then add missing tests.
@@ -105,11 +110,11 @@ To determine if coverage is incomplete, run the per-file coverage command (phase
 
 Process one source file at a time:
 
-1. **Read the source file in full.**
-2. **List its code paths** — enumerate the branches, conditions, early returns, error paths, and edge cases. This is the test plan for the file.
+1. **Read the source file in full.** For **internal** files, also read the owning module's boundary file(s) — the tests you write target the boundary, so you must understand how the boundary drives the internal.
+2. **List its code paths** — enumerate the branches, conditions, early returns, error paths, and edge cases. This is the test plan for the file. For internal files, map each code path to the boundary input that reaches it. A path unreachable through any boundary input is dead code — flag it in the report instead of testing it; a path that is reachable but combinatorially impractical to drive is a promotion candidate — flag it likewise.
 3. **For audit-category files** (100% coverage already): read the existing test file and compare its assertions against the code paths from step 2. For each code path, verify the test asserts the **output value or side effect** — not just that the code executed (e.g., `toBeDefined()` or `not.toThrow()` alone is insufficient when the return value or mutation is meaningful). If all code paths have strong assertions, mark the file as **verified** in the report and move to the next file without rewriting or re-running tests. If any assertions are weak or missing for a code path, proceed to steps 4–6 to update the test file.
-4. **Write** (or update) the test file following all conventions from the loaded skill.
-5. **Run the test with coverage** for the single file you just wrote. Use the resolved `test-unit-coverage` command with single-file coverage flags as described in the Running Tests section of the loaded unit-test-standards.
+4. **Write** (or update) the test file following all conventions from the loaded skill. For internal files, the write target is the **boundary's** test file — never create `<internal>.unit.test.ts`.
+5. **Run the test with coverage** for the source file you are covering (`--collectCoverageFrom` the source file — for internals, that is the internal file, exercised via the boundary's test file). Use the resolved `test-unit-coverage` command with single-file coverage flags as described in the Running Tests section of the loaded unit-test-standards.
 6. The tests must pass and coverage must meet the target before moving to the next file.
 7. **Format the test file** — run the resolved `format-write` command with the test file path appended. Always run this after the test file passes validation — it is a non-conditional cleanup step.
 
@@ -149,7 +154,14 @@ Files tested:
 - `<source>` → `<source>.unit.test.*` – rewritten to match conventions, <N> test cases
 - `<source>` → `<source>.unit.test.*` – audited, verified (assertions cover all code paths)
 - `<source>` → `<source>.unit.test.*` – audited, updated <N> weak assertions
+- `<source>` – internal, covered via `<boundary>.unit.test.*` (<N> test cases added)
 - `<source>` – skipped (barrel/types/re-export)
+
+[If migration candidates / dead code / promotion candidates:]
+Flags:
+- `<internal>.unit.test.*`: existing dedicated test on internal — migration candidate
+- `<internal>`: <lines/branches> unreachable through boundary — dead code candidate
+- `<internal>`: impractical to cover via boundary — promotion candidate
 
 [If failures:]
 Unresolved failures:
@@ -173,6 +185,7 @@ Keep the summary to bullet points only.
 - Do not create commits, branches, or push work on the current branch.
 - Do not modify source files — only create or modify test files.
 - Do not write tests for `index.ts` barrel/re-export files.
+- Do not create dedicated test files for module internals — cover them through their owning module's boundary tests (see Phase 3 classification).
 - For `.tsx` component files that render JSX, follow the component testing patterns from the loaded skill (Phase 1). Mock child components, hooks, and stores to isolate the unit under test. Use `.unit.test.tsx` as the test file extension for component tests.
 - Do not write tests for files that only contain enums, types, interfaces, or constants with no logic.
 - Do not write tests for files outside the provided path(s).

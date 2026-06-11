@@ -17,7 +17,7 @@ Fast gut-check: *is "how many of these exist right now?" a meaningful question?*
 
 ### Banned: Static-Only Classes
 
-A class with only static methods is a module wearing a costume — it adds `ClassName.` prefixes and inheritance hazards while binding no state. Use module functions instead. Lint-enforced via `@typescript-eslint/no-extraneous-class` (see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md)).
+A class with only static methods is a module wearing a costume — it adds `ClassName.` prefixes and inheritance hazards while binding no state. Use module functions instead. Lint-enforced via Biome's `complexity/noStaticOnlyClass` (see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md)).
 
 ❌ BAD: Static-only class as a namespace
 

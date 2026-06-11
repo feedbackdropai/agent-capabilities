@@ -148,14 +148,24 @@ From the changed files list, select only `.ts`/`.tsx` source files eligible for 
 
 **If no eligible source files remain after filtering**, skip Steps 3 and 4 entirely — proceed directly to Step 5.
 
-For each eligible source file, spawn `fdrop:agent:unit-test-writer` as a subagent (`subagent_type: "fdrop:agent:unit-test-writer"`):
+**Map each eligible file to its test target:**
+
+- **Boundary file** (a module's public surface — root-layer `common/` leaf modules, feature public exports, `.service`/`.resolver`/`.controller` files, a graduated folder's main file) → targets itself.
+- **Internal file** (under a module's `common/` — parent folder is a feature/route/screen/component/class folder, not a root layer) → targets its owning module's boundary file(s).
+
+Deduplicate the targets. For each target, spawn `fdrop:agent:unit-test-writer` as a subagent (`subagent_type: "fdrop:agent:unit-test-writer"`):
 
 ```
 Write unit tests for the following file:
 
-<source-file-path>
+<boundary-file-path>
 
-Follow your full workflow (Phase 0 through Phase 5) to analyze, write, and validate unit tests for this file.
+[If changed internals map to this boundary:]
+The following changed internal files must reach 100% coverage through this boundary's tests:
+<internal-file-path-1>
+<internal-file-path-2>
+
+Follow your full workflow (Phase 0 through Phase 5) to analyze, write, and validate unit tests.
 ```
 
 For monorepo targets, add the line: `This is in the <package-name> package.`

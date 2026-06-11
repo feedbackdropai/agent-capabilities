@@ -1,5 +1,23 @@
 # Unit Testing
 
+## Module Boundary Testing
+
+Tests target **module boundaries** — a module's public API — not every file individually. Internals are covered *through* the boundary. This pins tests to behavior rather than internal decomposition: refactoring a module's internals never breaks its tests.
+
+**Classify every source file before writing tests:**
+
+| Classification | Definition | Test file? |
+|---|---|---|
+| **Boundary** | A module's public surface: shared leaf modules under a root-layer `common/` (e.g., `src/common/utils/`, `src/app/common/`); a feature's public exports (hooks, components, top-level operation files); framework files (`.service.ts`, `.resolver.ts`, `.controller.ts`, guards, job services); a graduated folder's main file (`HttpClient/HttpClient.ts`) | ✅ Co-located `*.unit.test.ts` |
+| **Internal** | A file under a *module's* `common/` — i.e., a `common/` whose parent folder is a feature, route, screen, component, or class folder (not a root layer like `src/`) | ❌ No dedicated test file — covered through the owning module's boundary tests |
+
+**Rules:**
+
+- Coverage is still measured per source file: an internal must reach 100% lines/branches/functions, achieved by driving the boundary's inputs.
+- If an internal branch cannot be reached through any boundary input, it is **dead code** — flag it for deletion. Do not write a direct test to cover it.
+- If covering an internal through the boundary is impractical (combinatorial inputs), that is the promotion signal: the internal has earned its own module and direct tests. Flag it in the report — do not silently create a dedicated test file.
+- Existing dedicated test files on internals are migration debt: leave them in place and do not extend them — new coverage goes through the boundary. Flag them in the report as migration candidates.
+
 ## Test File Location
 
 Unit tests are **co-located** with their source files. Place the test file in the same directory as the file being tested, using the naming convention `*.unit.test.ts`.
