@@ -17,7 +17,7 @@ Fast gut-check: *is "how many of these exist right now?" a meaningful question?*
 
 ### Banned: Static-Only Classes
 
-A class with only static methods is a module wearing a costume — it adds `ClassName.` prefixes and inheritance hazards while binding no state. Use module functions instead. Lint-enforced via Biome's `complexity/noStaticOnlyClass` (see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md)).
+A class with only static methods is a module wearing a costume — it adds `ClassName.` prefixes and inheritance hazards while binding no state. Use module functions instead.
 
 ❌ BAD: Static-only class as a namespace
 
@@ -47,6 +47,10 @@ export class DateUtils {
 
 - For class instance methods, use inline type definitions rather than separate interfaces
 - This keeps the method signature self-contained and avoids creating unnecessary interface files
+
+### Return Types on Methods
+
+Public methods of an exported class are exported surface — declare their return types (see [typescript.md](./typescript.md#return-types--explicit-on-exports-inferred-internally)). `private` methods infer, like any internal. The interface-pinned exception applies: a method implementing a declared interface is already contracted and need not restate the type.
 
 ✅ GOOD: Inline type for class instance method
 
@@ -99,11 +103,11 @@ export class Person {
 		this.isActive = isActive;
 	}
 
-	greet() {
+	greet(): string {
 		return `Hello, my name is ${this.name} and I am ${this.age} years old.`;
 	}
 
-	getContactInfo() {
+	getContactInfo(): { name: string; age: number; email?: string } {
 		return {
 			name: this.name,
 			age: this.age,
@@ -111,11 +115,11 @@ export class Person {
 		};
 	}
 
-	setActiveStatus({ status }: { status: boolean }) {
+	setActiveStatus({ status }: { status: boolean }): void {
 		this.isActive = status;
 	}
 
-	getActiveStatus() {
+	getActiveStatus(): boolean {
 		return this.isActive;
 	}
 }

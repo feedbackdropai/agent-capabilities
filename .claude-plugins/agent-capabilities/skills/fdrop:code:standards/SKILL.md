@@ -31,7 +31,7 @@ Before writing any code, load these skills:
 
 ## Enforcement
 
-Mechanical rules are lint-enforced; judgment rules live in the docs above. See [enforcement.md](./docs/enforcement.md) for the rule→lint mapping. If the repo's lint config and a doc disagree on a mechanical rule, the lint config wins — report the drift.
+The consuming repo may enforce some of these rules via its lint config. If the repo's lint config and a doc disagree on a mechanical rule, the lint config wins — report the drift.
 
 ## Workflow
 

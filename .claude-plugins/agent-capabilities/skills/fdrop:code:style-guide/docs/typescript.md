@@ -1,14 +1,45 @@
 # TypeScript
 
-## Avoid explicit return types
+## Return Types — Explicit on Exports, Inferred Internally
 
-Let TypeScript infer return types. Explicit return types make code brittle—implementation changes require updating the type too.
+The bright line is the `export` keyword — the same trigger as "own file" and the `Params` interface:
 
-❌ `function getUser(id: string): User { ... }`
+- **Exported function** → declare the return type. The annotation is the output half of the public contract, exactly as `Params` is the input half.
+- **Non-exported function** (private helpers, callbacks) → always infer. Annotations on internals are noise; the consumer is in the same file and inference is precise there.
 
-✅ `function getUser(id: string) { ... }`
+**Why this rule exists:** with inference, an exported function's return type is whatever the body happens to return today. A refactor can silently widen or change the public contract, and the diff reads as an implementation edit — the error surfaces later, in a consumer's file, several inference hops away. An explicit annotation fails at the definition site the moment the body stops satisfying the contract, and an intentional API change becomes a visible diff line. It also keeps the codebase compatible with TypeScript's `isolatedDeclarations`.
 
-**Refactoring note:** When refactoring existing code, remove explicit return types to simplify maintenance. This reduces the burden of keeping return types in sync with implementation changes.
+✅ GOOD:
+
+```typescript
+interface Params {
+	user: User | null;
+}
+
+export const getUserDisplayName = ({ user }: Params): string => {
+	// ...
+};
+
+const sumTotals = ({ records }: { records: ReportRecord[] }) => {
+	// private helper — inferred
+};
+```
+
+❌ BAD:
+
+```typescript
+export const getUserDisplayName = ({ user }: Params) => { /* ... */ }; // WRONG — exported, contract is implicit
+
+const sumTotals = ({ records }: { records: ReportRecord[] }): number => { /* ... */ }; // WRONG — internal, annotation is noise
+```
+
+**Exceptions** (inference is correct on these even when exported):
+
+1. **Framework components** — React components don't annotate `JSX.Element`.
+2. **Generic-heavy signatures** — when the written return type would be an unreadable conditional-type expression, the generic signature is the contract; infer.
+3. **Interface-pinned signatures** — methods implementing a declared interface (e.g., a `RecordSource` implementation) are already contracted by the interface; restating the type is duplication.
+
+**Migration:** new exported functions comply immediately; existing exported functions gain a return type when touched. Never remove a return type from an exported function.
 
 ## Use `import type` for type-only imports
 
@@ -36,7 +67,7 @@ Do not use `any`. It disables type checking and defeats the purpose of TypeScrip
 
 - Use `unknown` when the type is genuinely not known — then narrow with type guards before using it.
 - Use specific types or generics when the structure is known.
-- If you must bypass the type system in a rare edge case, add a `// eslint-disable` comment explaining why.
+- If you must bypass the type system in a rare edge case, add the project's lint-suppression comment with an explanation of why.
 
 ✅ GOOD:
 

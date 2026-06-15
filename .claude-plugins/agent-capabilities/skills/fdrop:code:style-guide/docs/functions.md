@@ -60,7 +60,9 @@ const countByStatus = ({ records }: { records: ReportRecord[] }) => {
 	}, {} as Record<string, number>);
 };
 
-export const buildReportSummary = ({ records }: Params) => {
+export const buildReportSummary = ({
+	records,
+}: Params): { total: number; byStatus: Record<string, number> } => {
 	return {
 		total: sumTotals({ records }),
 		byStatus: countByStatus({ records }),
@@ -68,7 +70,7 @@ export const buildReportSummary = ({ records }: Params) => {
 };
 ```
 
-Note the split: the exported function uses the `Params` interface; the private helpers use inline object types. Both pass objects.
+Note the split: the exported function uses the `Params` interface and declares its return type; the private helpers use inline object types and infer their returns. Both pass objects.
 
 ❌ BAD: Exporting the helpers "so they can be tested"
 
@@ -107,7 +109,7 @@ Functions exceeding 50 lines or handling multiple responsibilities should be spl
 | 50-80 | Review — look for extractable logic  |
 | 80+   | Needs splitting                      |
 
-File growth is capped mechanically (~250 lines) — see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md) for the Biome/CI setup.
+Files stay under ~250 lines. A file approaching the cap is a signal to split or graduate the concept.
 
 **Note:** React components and hooks have different thresholds — see the `fdrop:task:refactor-plan` skill for React-specific limits.
 
@@ -207,7 +209,7 @@ interface Params {
 	number2: number;
 }
 
-export const addTwo = ({ number1, number2 }: Params) => {
+export const addTwo = ({ number1, number2 }: Params): number => {
 	return number1 + number2;
 };
 ```
@@ -217,7 +219,7 @@ export const addTwo = ({ number1, number2 }: Params) => {
 **`logHello.ts`**
 
 ```typescript
-export const logHello = () => {
+export const logHello = (): void => {
 	console.log('Hello');
 };
 ```
@@ -231,7 +233,7 @@ interface Params {
 	user: User | null;
 }
 
-export const getUserDisplayName = ({ user }: Params) => {
+export const getUserDisplayName = ({ user }: Params): string => {
 	// Guard clauses — early returns are encouraged here
 	if (!user) {
 		return 'Unknown';
@@ -258,7 +260,7 @@ interface Params {
 	hasBonus: boolean;
 }
 
-export const calculateFinalScore = ({ score, hasBonus }: Params) => {
+export const calculateFinalScore = ({ score, hasBonus }: Params): number => {
 	const bonus = 10;
 	let finalScore = score;
 
@@ -273,7 +275,7 @@ export const calculateFinalScore = ({ score, hasBonus }: Params) => {
 ❌ BAD: Multiple returns scattered in business logic
 
 ```typescript
-export const calculateFinalScore = ({ score, hasBonus }: Params) => {
+export const calculateFinalScore = ({ score, hasBonus }: Params): number => {
 	if (hasBonus) {
 		return score + 10; // Avoid — return buried in logic
 	}

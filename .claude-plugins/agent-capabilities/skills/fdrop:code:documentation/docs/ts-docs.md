@@ -49,7 +49,7 @@ interface Params {
  * @param id - The user's unique identifier
  * @param options - Configuration for the fetch request
  */
-export const getUser = async ({ id, options }: Params) => {
+export const getUser = async ({ id, options }: Params): Promise<User> => {
 	// ...
 };
 ```
@@ -210,7 +210,7 @@ interface Params<T> {
  * @example
  * const data = await retry({ fn: () => fetch('/api/data'), maxAttempts: 3 });
  */
-export const retry = async <T>({ fn, maxAttempts = 3, baseDelay = 1000 }: Params<T>) => {
+export const retry = async <T>({ fn, maxAttempts = 3, baseDelay = 1000 }: Params<T>): Promise<T> => {
 	...
 };
 ```

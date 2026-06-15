@@ -4,7 +4,7 @@ This document outlines universal architectural decisions and patterns that apply
 
 ## Modules & the Graduation Rule
 
-A **module** is a unit of code with a public API and private internals. TypeScript enforces privacy at the file level (non-exported = invisible to everyone). Folder-level boundaries are enforced by lint — see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md).
+A **module** is a unit of code with a public API and private internals. TypeScript enforces privacy at the file level (non-exported = invisible to everyone); folder-level boundaries are a convention the consuming repo may additionally enforce with tooling.
 
 **Every concept starts as a file and earns its folder:**
 

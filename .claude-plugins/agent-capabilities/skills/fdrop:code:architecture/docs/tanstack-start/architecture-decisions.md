@@ -88,3 +88,5 @@ export const useIssues = ({ searchParams }: Params) => {
 	return useSuspenseQuery(issuesQueryOptions({ searchParams }));
 };
 ```
+
+> **Return types:** query-options factories and hooks infer their return types — TanStack's `UseSuspenseQueryOptions`/`UseSuspenseQueryResult` generics are the contract, so this falls under the generic-heavy exception in [typescript.md](../../../fdrop:code:style-guide/docs/typescript.md#return-types--explicit-on-exports-inferred-internally).

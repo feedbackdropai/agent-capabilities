@@ -126,7 +126,7 @@ A **folder-module** (a feature, route, screen, graduated class or component — 
 - **Crossing a module boundary:** import ONLY from the module's `index.ts`. Never reach into another module's internals.
 - **Inside a module:** import directly from specific files. Deep imports within your own module are correct, not a violation.
 
-This rule is lint-enforced — see the [enforcement doc](../../fdrop:code:standards/docs/enforcement.md). The `index.ts` is the module's deliberate public API, not a directory listing.
+The `index.ts` is the module's deliberate public API, not a directory listing.
 
 ✅ GOOD: Cross-module import through the index
 
