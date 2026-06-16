@@ -41,7 +41,7 @@ export const defaultConfig: Config = { name: 'default' };
 
 ✅ GOOD: Separate files
 
-**`common/interfaces/config.ts`**
+**`common/types/config.ts`**
 
 ```typescript
 export interface Config {
@@ -52,7 +52,7 @@ export interface Config {
 **`common/constants/defaultConfig.ts`**
 
 ```typescript
-import type { Config } from '@/path/to/common/interfaces/config';
+import type { Config } from '@/path/to/common/types/config';
 
 export const defaultConfig: Config = { name: 'default' };
 ```
@@ -207,7 +207,7 @@ A barrel file is the module's **public API contract** — it lists exactly what 
 1. **Use named re-exports** — `export { Foo } from '<path>'`, never `export *`
 2. **One export per line** — makes diffs clean and review easy
 3. **Export deliberately** — the barrel exports the module's intended public surface. It MAY re-export from subfolders when those items are intentionally public; everything it omits is internal.
-4. **Internal subfolders** (`common/utils/`, `common/interfaces/`, etc.) keep their own `index.ts` for tidy intra-module imports, but those barrels are internal — nothing outside the module imports from them (the boundary rule above).
+4. **Internal subfolders** (`common/utils/`, `common/types/`, etc.) keep their own `index.ts` for tidy intra-module imports, but those barrels are internal — nothing outside the module imports from them (the boundary rule above).
 
 ✅ GOOD: Barrel as deliberate public API
 
@@ -215,35 +215,36 @@ A barrel file is the module's **public API contract** — it lists exactly what 
 
 ```typescript
 export { ingestRecords } from '@/ingestion/ingestRecords';
-export type { RawRecord } from '@/ingestion/common/interfaces/rawRecord';
+export type { RawRecord } from '@/ingestion/common/types/rawRecord';
 ```
 
 `RawRecord` is re-exported from a subfolder *on purpose* — it is part of the module's contract. `normalizeRecord` is not exported — it is internal, and the lint boundary makes that real.
 
-## Folder Organization for Types, Interfaces, and Constants
+## Folder Organization for Types, Constants, and Enums
 
 Organize shared items in their own folders based on what they are:
 
-| Item       | Folder               | Syntax               |
-| ---------- | -------------------- | -------------------- |
-| Interfaces | `common/interfaces/` | `export interface …` |
-| Types      | `common/types/`      | `export type …`      |
-| Constants  | `common/constants/`  | `export const …`     |
-| Enums      | `common/enums/`      | `export enum …`      |
+| Item               | Folder              | Syntax                                  |
+| ------------------ | ------------------- | --------------------------------------- |
+| Types & interfaces | `common/types/`     | `export type …` / `export interface …`  |
+| Constants          | `common/constants/` | `export const …`                        |
+| Enums              | `common/enums/`     | `export enum …`                         |
 
-A discriminated union family (exception 3) lives in `types/` under the union's name. An enum with its lookup map (exception 4) lives in `enums/` under the enum's name.
+Both `export type` and `export interface` declarations live in `common/types/` — the folder groups type-level declarations regardless of keyword. A discriminated union family (exception 3) lives in `types/` under the union's name. An enum with its lookup map (exception 4) lives in `enums/` under the enum's name.
 
-## Interfaces vs Types - They Are Different
+## Interfaces vs Types — Same Folder, Pick by Fit
 
-- **Interfaces** (`export interface`) go in `interfaces/` folder
-- **Types** (`export type`) go in `types/` folder
-- Do NOT mix them in the same folder
+Both `interface` and `type` declarations live in `common/types/`. The keyword is a per-declaration choice, not a folder decision:
 
-**When to use which:** Use an `interface` for object shapes (it extends and merges cleanly). Use a `type` for everything an interface cannot express — unions, intersections, mapped types, primitives, tuples, function signatures. When either would work for an object shape, use `interface`.
+- Use an `interface` for object shapes — it extends and merges cleanly.
+- Use a `type` for everything an interface cannot express — unions, intersections, mapped types, primitives, tuples, function signatures.
+- When either would work for an object shape, use whichever you prefer and stay consistent within a domain.
 
-✅ GOOD: Interface in interfaces folder
+Because both keywords share the `types/` folder, refactoring an object shape from `interface` to `type` (or back) is an in-place keyword edit — the filename, path, and imports never change.
 
-**`common/interfaces/userProfile.ts`**
+✅ GOOD: Interface in the types folder
+
+**`common/types/userProfile.ts`**
 
 ```typescript
 export interface UserProfile {
@@ -252,7 +253,7 @@ export interface UserProfile {
 }
 ```
 
-✅ GOOD: Type in types folder
+✅ GOOD: Type in the same folder
 
 **`common/types/userId.ts`**
 
@@ -260,27 +261,9 @@ export interface UserProfile {
 export type UserId = string;
 ```
 
-❌ BAD: Interface in types folder
+## Where Non-Params Types Belong
 
-**`common/types/userProfile.ts`**
-
-```typescript
-export interface UserProfile {
-	// WRONG FOLDER
-}
-```
-
-❌ BAD: Type in interfaces folder
-
-**`common/interfaces/userId.ts`**
-
-```typescript
-export type UserId = string; // WRONG FOLDER
-```
-
-## Where Non-Params Interfaces Belong
-
-The `Params` interface for a function stays with the function. **All other exported interfaces** go in the `interfaces/` folder.
+The `Params` interface for a function stays with the function. **All other exported types and interfaces** go in the `types/` folder.
 
 ✅ GOOD: Params stays with function
 
@@ -297,9 +280,9 @@ export const copyFile = ({ sourcePath, destPath }: Params) => {
 };
 ```
 
-✅ GOOD: Return type interface in interfaces folder
+✅ GOOD: Return type in the types folder
 
-**`common/interfaces/copyResult.ts`**
+**`common/types/copyResult.ts`**
 
 ```typescript
 export interface CopyResult {
@@ -308,13 +291,13 @@ export interface CopyResult {
 }
 ```
 
-❌ BAD: Exported non-Params interface defined in function file
+❌ BAD: Exported non-Params type defined in function file
 
 **`copyFile.ts`**
 
 ```typescript
 export interface CopyResult {
-	// SHOULD BE IN common/interfaces/
+	// SHOULD BE IN common/types/
 	success: boolean;
 }
 ```
@@ -328,7 +311,7 @@ Constants are NOT types or interfaces. They go in `constants/` folder.
 **`common/constants/defaultConfig.ts`**
 
 ```typescript
-import type { Config } from '@/path/to/common/interfaces/config';
+import type { Config } from '@/path/to/common/types/config';
 
 export const defaultConfig: Config = {
 	name: 'default',

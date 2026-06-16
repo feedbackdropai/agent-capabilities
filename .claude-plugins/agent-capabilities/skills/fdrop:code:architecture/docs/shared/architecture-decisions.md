@@ -12,7 +12,7 @@ Package-specific architecture decisions for `packages/shared`.
 src/
 ├── errors/                    # Shared error types and codes
 │   ├── enums/
-│   ├── interfaces/
+│   ├── types/
 │   └── ...
 ├── permissions/               # Permission logic and constants
 │   ├── common/
@@ -28,7 +28,7 @@ src/
 │   └── README.md
 ```
 
-Each domain folder follows the same `common/` pattern as the rest of the monorepo: `constants/`, `enums/`, `utils/`, and `interfaces/` as needed.
+Each domain folder follows the same `common/` pattern as the rest of the monorepo: `constants/`, `enums/`, `utils/`, and `types/` as needed.
 
 ## File Naming Conventions
 
@@ -38,7 +38,7 @@ All files use `camelCase.ts` naming. Folders use `kebab-case`.
 |-----------|------------|---------|
 | Utils | `camelCase.ts` | `hasPermission.ts` |
 | Enums, constants | `camelCase.ts` | `planLimits.ts` |
-| Interfaces | `camelCase.ts` | `permissionContext.ts` |
+| Types & interfaces | `camelCase.ts` | `permissionContext.ts` |
 | Folders | `kebab-case` | `permissions/`, `errors/` |
 
 ## Barrel Exports (`index.ts`)

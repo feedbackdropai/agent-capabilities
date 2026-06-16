@@ -9,7 +9,7 @@ A **module** is a unit of code with a public API and private internals. TypeScri
 **Every concept starts as a file and earns its folder:**
 
 - **File-module (the default):** a single file holding one exported item plus any non-exported private helpers. The compiler enforces the boundary for free. Examples: a utility function, a small class, a hook.
-- **Folder-module (graduated):** when a concept needs private companions — its own utils, interfaces, enums, or constants that serve only it — it graduates to a folder with an `index.ts` as its public API.
+- **Folder-module (graduated):** when a concept needs private companions — its own utils, types, enums, or constants that serve only it — it graduates to a folder with an `index.ts` as its public API.
 - **Born folders:** features, route modules, and screens are inherently multi-file concepts and start as folder-modules.
 
 **The graduation trigger is mechanical:** *needs private companion files → folder; doesn't → file.* Never create folder ceremony for a concept that fits in one file.

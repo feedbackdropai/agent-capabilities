@@ -137,7 +137,7 @@ Do NOT create a folder for a class that has no companions — that is ceremony, 
 ### Folder Structure (when graduated)
 
 - Class folder name matches the class name
-- Companion items go under a `common/` folder, organized by category (`utils/`, `interfaces/`, `types/`, `enums/`, `constants/`), each with a barrel `index.ts`
+- Companion items go under a `common/` folder, organized by category (`utils/`, `types/`, `enums/`, `constants/`), each with a barrel `index.ts`
 - The class folder's `index.ts` exports the class — it is the module's public API, and the boundary rule applies: outsiders import only from it
 
 ### Folder Structure – Example
@@ -149,7 +149,7 @@ HttpClient/
 │  │  ├─ index.ts
 │  │  ├─ buildRetryDelays.ts
 │  │  └─ buildHeaders.ts
-│  ├─ interfaces/
+│  ├─ types/
 │  │  ├─ index.ts
 │  │  └─ requestOptions.ts
 │  ├─ enums/
@@ -160,9 +160,9 @@ HttpClient/
 ├─ index.ts
 ```
 
-### Interfaces vs Types – Separate Folders
+### Interfaces and Types – Same Folder
 
-See [imports-exports.md](./imports-exports.md#interfaces-vs-types---they-are-different) for the full rule and examples. In short: `interfaces/` contains only `export interface`, `types/` contains only `export type`. Do not mix them.
+See [imports-exports.md](./imports-exports.md#interfaces-vs-types--same-folder-pick-by-fit) for the full rule and examples. In short: both `export interface` and `export type` declarations live in `types/`; the keyword is a per-declaration choice, not a folder decision.
 
 ### Example – Class Barrel File
 

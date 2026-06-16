@@ -11,7 +11,7 @@
     - Do not pass in any arguments
     - Do not create a `Params` interface
 - **Sole exception — externally imposed signatures:** callbacks passed to `map`/`reduce`/`sort`, event handlers, and framework hooks have shapes dictated by their caller's contract. Write the signature the contract demands.
-- If callers need to *name* the argument type (e.g., to pre-build a typed args object), that type has become part of the public contract — promote it to a named exported interface in `interfaces/` and use it in place of `Params`.
+- If callers need to *name* the argument type (e.g., to pre-build a typed args object), that type has become part of the public contract — promote it to a named exported type in `types/` and use it in place of `Params`.
 - Export the function on the line it is defined as a named export
 
 ## Single Return Point (Single Exit)

@@ -17,7 +17,7 @@ routes/{route}/
 ├── {route}.resolver.unit.test.ts
 ├── {route}.service.unit.test.ts
 ├── common/                    # Route-specific shared code
-│   └── interfaces/
+│   └── types/
 ├── dto/                       # Data transfer objects
 │   ├── inputs/                # GraphQL input types
 │   └── models/                # GraphQL response models

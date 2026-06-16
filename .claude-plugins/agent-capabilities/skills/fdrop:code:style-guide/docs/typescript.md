@@ -48,14 +48,14 @@ When importing interfaces, types, or anything used only in type positions, use `
 ✅ GOOD:
 
 ```typescript
-import type { UserProfile } from '@/common/interfaces';
+import type { UserProfile } from '@/common/types';
 import type { UserId } from '@/common/types';
 ```
 
 ❌ BAD:
 
 ```typescript
-import { UserProfile } from '@/common/interfaces';
+import { UserProfile } from '@/common/types';
 import { UserId } from '@/common/types';
 ```
 
