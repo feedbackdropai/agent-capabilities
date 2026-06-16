@@ -25,20 +25,24 @@
 
 ### File Naming
 
-The file name always matches the **exported item's name** — only the casing varies by package or framework.
+The file name always matches the **exported item's name, including its casing**. The export's own casing determines the file's casing:
+
+- **camelCase exports** (functions, constants) → camelCase files — \`buildVersionedLabel.ts\`, \`maxRetries.ts\`
+- **PascalCase exports** (classes, interfaces, types, enums) → PascalCase files — \`Person.ts\`, \`UserProfile.ts\`, \`UserId.ts\`, \`Action.ts\`
 
 Resolve the casing in this order:
 
 1. **Existing files in the same directory** — match their convention
 2. **The package's framework doc** — e.g., NestJS packages use \`kebab-case.{suffix}.ts\` (see the architecture skill's framework docs)
-3. **Default** (new/empty directory, no framework rule): camelCase matching the export name — \`buildVersionedLabel.ts\`
+3. **Default** (new/empty directory, no framework rule): match the export name's own casing per the rule above
 
-| Convention                         | Example                        |
-| ---------------------------------- | ------------------------------ |
-| camelCase matching the export name | \`buildVersionedLabel.ts\`       |
-| kebab-case (framework-mandated)    | \`get-frontend-domain.ts\`       |
+| Convention                          | Applies to                        | Example                    |
+| ----------------------------------- | --------------------------------- | -------------------------- |
+| camelCase matching the export name  | functions, constants              | \`buildVersionedLabel.ts\`   |
+| PascalCase matching the export name | classes, interfaces, types, enums | \`UserProfile.ts\`           |
+| kebab-case (framework-mandated)     | per framework doc                 | \`get-frontend-domain.ts\`   |
 
-**Classes** always use PascalCase matching the class name regardless of package (e.g., \`Person.ts\`), unless the framework doc says otherwise (e.g., NestJS services are \`events.service.ts\`).
+**Framework mandates override casing entirely** — e.g., NestJS services are \`events.service.ts\` even though the class itself is PascalCase.
 
 ## Variables
 

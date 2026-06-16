@@ -50,12 +50,16 @@ When creating or extracting shared code, follow these principles:
 
 **Additional rules:**
 
-- Import from specific subdirectories: `from '@common/utils'` not `from '@common'`
+- Import granularity follows the module boundary rule (see [imports-exports.md](../../fdrop:code:style-guide/docs/imports-exports.md#module-boundaries)): **within your own module, deep-import the specific file** (`from '@/common/utils/formatDate'`); **across a module boundary, import the module's `index.ts` only**. Never import from a package-root barrel like `@common`.
 - If your project doesn't use path aliases, use relative paths consistently
 
 ## File Naming Conventions
 
-The default file and folder naming convention is `kebab-case`. Packages with their own architecture docs may define their own naming conventions — defer to those docs where they diverge.
+**Files** follow the rule in the style guide's [conventions doc](../../fdrop:code:style-guide/docs/conventions.md#file-naming): the filename matches the export name including its casing (camelCase exports → camelCase files, PascalCase exports → PascalCase files), with framework mandates overriding.
+
+**Folders** default to `kebab-case` (`feature-a/`, `api-tokens/`) — except a class or component folder, which matches its PascalCase name (`HttpClient/`).
+
+Packages with their own architecture docs may define their own conventions — defer to those docs where they diverge.
 
 ## Test File Placement
 

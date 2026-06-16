@@ -41,7 +41,7 @@ export const defaultConfig: Config = { name: 'default' };
 
 ✅ GOOD: Separate files
 
-**`common/types/config.ts`**
+**`common/types/Config.ts`**
 
 ```typescript
 export interface Config {
@@ -52,17 +52,17 @@ export interface Config {
 **`common/constants/defaultConfig.ts`**
 
 ```typescript
-import type { Config } from '@/path/to/common/types/config';
+import type { Config } from '@/path/to/common/types/Config';
 
 export const defaultConfig: Config = { name: 'default' };
 ```
 
 ✅ GOOD: Discriminated union family in one file (exception 3)
 
-**`common/types/syncEvent.ts`**
+**`common/types/SyncEvent.ts`**
 
 ```typescript
-import { SyncEventKind } from '@/common/enums/syncEventKind';
+import { SyncEventKind } from '@/common/enums/SyncEventKind';
 
 export interface FileAddedEvent {
 	kind: SyncEventKind.FileAdded;
@@ -215,7 +215,7 @@ A barrel file is the module's **public API contract** — it lists exactly what 
 
 ```typescript
 export { ingestRecords } from '@/ingestion/ingestRecords';
-export type { RawRecord } from '@/ingestion/common/types/rawRecord';
+export type { RawRecord } from '@/ingestion/common/types/RawRecord';
 ```
 
 `RawRecord` is re-exported from a subfolder *on purpose* — it is part of the module's contract. `normalizeRecord` is not exported — it is internal, and the lint boundary makes that real.
@@ -244,7 +244,7 @@ Because both keywords share the `types/` folder, refactoring an object shape fro
 
 ✅ GOOD: Interface in the types folder
 
-**`common/types/userProfile.ts`**
+**`common/types/UserProfile.ts`**
 
 ```typescript
 export interface UserProfile {
@@ -255,7 +255,7 @@ export interface UserProfile {
 
 ✅ GOOD: Type in the same folder
 
-**`common/types/userId.ts`**
+**`common/types/UserId.ts`**
 
 ```typescript
 export type UserId = string;
@@ -282,7 +282,7 @@ export const copyFile = ({ sourcePath, destPath }: Params) => {
 
 ✅ GOOD: Return type in the types folder
 
-**`common/types/copyResult.ts`**
+**`common/types/CopyResult.ts`**
 
 ```typescript
 export interface CopyResult {

@@ -151,10 +151,10 @@ HttpClient/
 │  │  └─ buildHeaders.ts
 │  ├─ types/
 │  │  ├─ index.ts
-│  │  └─ requestOptions.ts
+│  │  └─ RequestOptions.ts
 │  ├─ enums/
 │  │  ├─ index.ts
-│  │  └─ retryStrategy.ts
+│  │  └─ RetryStrategy.ts
 ├─ HttpClient.ts
 ├─ HttpClient.unit.test.ts
 ├─ index.ts

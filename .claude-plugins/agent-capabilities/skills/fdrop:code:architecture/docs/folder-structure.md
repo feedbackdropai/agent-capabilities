@@ -61,7 +61,7 @@ src/
 │ │ └─ formatDate.ts
 │ ├─ types/
 │ │ ├─ index.ts
-│ │ └─ apiResponse.ts
+│ │ └─ ApiResponse.ts
 │ ├─ services/
 │ │ ├─ index.ts
 │ │ └─ ApiClient.ts
@@ -73,7 +73,7 @@ src/
 │ │ │ └─ featureAHelper.ts
 │ │ ├─ types/
 │ │ │ ├─ index.ts
-│ │ │ └─ featureAOptions.ts
+│ │ │ └─ FeatureAOptions.ts
 │ ├─ feature-a.ts
 │ └─ index.ts
 │

@@ -14,7 +14,7 @@ Secondary benefits: better IDE autocomplete, safer refactoring, and explicit map
 
 ❌ BAD: Type with defined string names
 
-**`common/types/action.ts`**
+**`common/types/Action.ts`**
 
 ```typescript
 export type Action = 'add' | 'remove' | 'list' | 'update';
@@ -22,7 +22,7 @@ export type Action = 'add' | 'remove' | 'list' | 'update';
 
 ✅ GOOD: Enum with defined string names
 
-**`common/enums/action.ts`**
+**`common/enums/Action.ts`**
 
 ```typescript
 export enum Action {
@@ -63,7 +63,7 @@ A lookup map keyed by the enum (`Record<MyEnum, …>`) may live in the enum's fi
 
 ✅ GOOD: Enum + derived lookup map in one file
 
-**`common/enums/logLevel.ts`**
+**`common/enums/LogLevel.ts`**
 
 ```typescript
 export enum LogLevel {
