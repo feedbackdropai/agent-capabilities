@@ -37,6 +37,6 @@ Imports & module structure ([`structure/`](./references/structure/)):
 
 - [structure/one-export-per-file.md](./references/structure/one-export-per-file.md) – One exported item per file (and the closed exception list)
 - [structure/import-paths.md](./references/structure/import-paths.md) – Path-alias import strategy
-- [structure/module-boundaries.md](./references/structure/module-boundaries.md) – Module boundaries, exports, and barrel files
+- [structure/module-api.md](./references/structure/module-api.md) – Module boundaries, exports, and barrel files
 - [structure/type-placement.md](./references/structure/type-placement.md) – Where types and interfaces live (and interface-vs-type)
 - [structure/constant-placement.md](./references/structure/constant-placement.md) – Where constants live

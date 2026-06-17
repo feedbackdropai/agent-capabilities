@@ -85,14 +85,15 @@ export type MyConstant = (typeof MyConstant)[keyof typeof MyConstant];
 
 ## Barrel Files (`index.ts`)
 
-A barrel file is the module's **public API contract** — it lists exactly what consumers may use.
+A barrel file is the module's **public API contract** — it lists exactly what consumers may use. Everything it omits is internal, and the lint boundary makes that real.
 
 **Rules:**
 
-1. **Use named re-exports** — `export { Foo } from '<path>'`, never `export *`
-2. **One export per line** — makes diffs clean and review easy
-3. **Export deliberately** — the barrel exports the module's intended public surface. It MAY re-export from subfolders when those items are intentionally public; everything it omits is internal.
-4. **Internal subfolders** (`common/utils/`, `common/types/`, etc.) keep their own `index.ts` for tidy intra-module imports, but those barrels are internal — nothing outside the module imports from them (the boundary rule above).
+1. **Every folder-module has an `index.ts`** — it is the only path other modules import through (the boundary rule above)
+2. **Use named re-exports** — `export { Foo } from '<path>'` (use the package's import-path convention — alias when configured), never `export *`
+3. **One export per line** — makes diffs clean and review easy
+4. **Export deliberately** — the barrel exports the module's intended public surface. It MAY re-export from subfolders when those items are intentionally public; everything it omits is internal.
+5. **Internal subfolders** (`common/utils/`, `common/types/`, etc.) keep their own `index.ts` for tidy intra-module imports, but those barrels are internal — nothing outside the module imports from them (the boundary rule above).
 
 ✅ GOOD: Barrel as deliberate public API
 

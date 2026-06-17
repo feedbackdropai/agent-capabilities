@@ -184,7 +184,7 @@ Use a **hybrid approach** based on mock scope:
 
 1. **Inline mocks** - Simple, one-off mocks specific to a single test file
 2. **Co-located `__mocks__/` folder** - Module-specific mocks used by multiple tests in that area
-3. **`test/mocks/`** - Global mocks used across the entire codebase (e.g., `mockPrismaService`, `mockLogger`)
+3. **`test/mocks/`** - Global mocks used across the entire codebase (e.g., `mockDatabaseService`, `mockLogger`)
 
 ### Co-located `__mocks__/` Folder
 
@@ -312,11 +312,11 @@ jest.mock('@/utils/get-profile', () => ({
 When mocks or fixtures are shared across many test files, place them in a dedicated `test/` folder at the package root. Use this structure for new shared utilities:
 
 ```
-packages/backend-api/
+packages/your-package/
 ├── src/
-│   └── app/...
+│   └── ...
 └── test/
-    ├── mocks/           # Shared mocks (e.g., mockPrismaService)
+    ├── mocks/           # Shared mocks (e.g., mockDatabaseService)
     ├── fixtures/        # Test data factories
     └── utils/           # Test helpers
 ```
@@ -465,10 +465,10 @@ describe('formatCurrency', () => {
 
 ## Method-Level Mocking with `jest.spyOn`
 
-Use `jest.spyOn` when you need to mock a single method on an already-instantiated object rather than replacing an entire module. This is common in NestJS services where dependencies are injected instances.
+Use `jest.spyOn` when you need to mock a single method on an already-instantiated object rather than replacing an entire module. This is common when dependencies are injected instances you already hold a reference to.
 
 Prefer `jest.spyOn` over `jest.mock` when:
-- The target is a method on an object you already have a reference to (e.g., an injected service)
+- The target is a method on an object you already have a reference to (e.g., an injected service or repository)
 - You want to mock one method while leaving the rest of the object intact
 
 Prefer `jest.mock` (module-level) when:
@@ -478,18 +478,18 @@ Prefer `jest.mock` (module-level) when:
 ```typescript
 // Mocked Imports
 // -------------------------
-const mockPrismaWorkspaceUpdate = jest.spyOn(prismaService.workspace, 'update');
+const mockUserRepositoryUpdate = jest.spyOn(userRepository, 'update');
 // -------------------------
 
-describe('when the workspace is updated', () => {
+describe('when the user is updated', () => {
 	beforeEach(() => {
-		mockPrismaWorkspaceUpdate.mockClear();
-		mockPrismaWorkspaceUpdate.mockResolvedValue(mockWorkspace);
+		mockUserRepositoryUpdate.mockClear();
+		mockUserRepositoryUpdate.mockResolvedValue(mockUser);
 	});
 
-	test('should call prisma update with the correct args', () => {
-		expect(mockPrismaWorkspaceUpdate).toHaveBeenCalledWith({
-			where: { id: 'ws-1' },
+	test('should call update with the correct args', () => {
+		expect(mockUserRepositoryUpdate).toHaveBeenCalledWith({
+			where: { id: 'user-1' },
 			data: { name: 'Updated' },
 		});
 	});

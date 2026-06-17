@@ -51,7 +51,7 @@ Before analyzing code, read these documents:
 - [typescript/type-assertions.md](../fdrop:code:style-guide/references/typescript/type-assertions.md) – Avoid `as`; prefer narrowing
 - [structure/one-export-per-file.md](../fdrop:code:style-guide/references/structure/one-export-per-file.md) – One exported item per file
 - [structure/import-paths.md](../fdrop:code:style-guide/references/structure/import-paths.md) – Path-alias import strategy
-- [structure/module-boundaries.md](../fdrop:code:style-guide/references/structure/module-boundaries.md) – Module boundaries, exports, and barrels
+- [structure/module-api.md](../fdrop:code:style-guide/references/structure/module-api.md) – Module boundaries, exports, and barrels
 - [structure/type-placement.md](../fdrop:code:style-guide/references/structure/type-placement.md) – Where types and interfaces live
 - [structure/constant-placement.md](../fdrop:code:style-guide/references/structure/constant-placement.md) – Where constants live
 

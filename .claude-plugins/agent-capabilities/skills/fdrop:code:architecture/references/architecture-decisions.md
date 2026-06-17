@@ -50,7 +50,7 @@ When creating or extracting shared code, follow these principles:
 
 **Additional rules:**
 
-- Import granularity follows the module boundary rule (see [module-boundaries.md](../../fdrop:code:style-guide/references/structure/module-boundaries.md#module-boundaries)): **within your own module, deep-import the specific file** (`from '@/common/utils/formatDate'`); **across a module boundary, import the module's `index.ts` only**. Never import from a package-root barrel like `@common`.
+- Import granularity follows the module boundary rule (see [module-api.md](../../fdrop:code:style-guide/references/structure/module-api.md#module-boundaries)): **within your own module, deep-import the specific file** (`from '@/common/utils/formatDate'`); **across a module boundary, import the module's `index.ts` only**. Never import from a package-root barrel like `@common`.
 - If your project doesn't use path aliases, use relative paths consistently
 
 ## File Naming Conventions
@@ -179,12 +179,6 @@ Common signs of duplication:
 
 ## Barrel Exports (`index.ts`)
 
-A module's `index.ts` is its **public API contract** — it lists exactly what consumers may use. Everything the barrel omits is internal, and the lint boundary makes that real.
-
-1. **Use named re-exports** — `export { Foo } from '<path>'` (use the package's import path convention — alias when configured), never `export *`
-2. **One export per line** — makes diffs clean and review easy
-3. **Every folder-module has an `index.ts`** — it is the only cross-module import path
-4. **Export deliberately** — the barrel MAY re-export from subfolders when those items are intentionally public; it is an API, not a directory listing
-5. **Internal subfolders** (`common/utils/`, etc.) keep their own `index.ts` for tidy intra-module imports, but those barrels are internal — nothing outside the module imports from them
+A graduated folder-module's `index.ts` is its public API contract — the single path other modules import through, and how the boundary created by the [graduation rule](#modules--the-graduation-rule) becomes real. The barrel rules (named re-exports, one export per line, deliberate public surface) are defined once in [module-api.md](../../fdrop:code:style-guide/references/structure/module-api.md#barrel-files).
 
 Package-specific additions (e.g., import alias conventions in re-export paths) are documented in each package's architecture doc.

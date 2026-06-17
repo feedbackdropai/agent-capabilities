@@ -18,7 +18,6 @@ Before writing any code, read these documents:
 
 - [unit-testing.md](./references/unit-testing.md) – Core testing guidelines, file location, and mock organization
 - [unit-testing-react-components.md](./references/unit-testing-react-components.md) – React/Preact component testing with @testing-library
-- [unit-testing-nestjs.md](./references/unit-testing-nestjs.md) – NestJS service testing with DI mock providers
 - [unit-test-examples.md](./references/unit-test-examples.md) – Example unit test files for classes, functions, and components
 
 ## Forcing Function
