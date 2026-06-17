@@ -23,7 +23,7 @@ Use a single return at the end of the function for business logic — one consis
 ## Organization & Structure
 
 - **One EXPORTED function per file — NO EXCEPTIONS**
-- The file name matches the exported function name, cased per the package's file-naming convention (see [file-naming.md](./file-naming.md))
+- The file name matches the exported function name, cased per the package's file-naming convention (see [file-naming.md](../conventions/file-naming.md))
 - Build smaller, focused functions with a single objective
 - If a task requires multiple functions, create a wrapper function that composes these smaller functions
 

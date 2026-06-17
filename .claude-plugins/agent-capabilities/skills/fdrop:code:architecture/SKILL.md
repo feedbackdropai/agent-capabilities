@@ -16,22 +16,22 @@ Follow the rules in the linked docs — they're requirements, not suggestions. C
 
 ### Shared (always read)
 
-- [folder-structure.md](./docs/folder-structure.md) – Monorepo folder organization, `common/` pattern, domain folders
-- [architecture-decisions.md](./docs/architecture-decisions.md) – Shared architectural patterns
+- [folder-structure.md](./references/folder-structure.md) – Monorepo folder organization, `common/` pattern, domain folders
+- [architecture-decisions.md](./references/architecture-decisions.md) – Shared architectural patterns
 
 ### Framework (read when touching a package that uses that framework)
 
 Determine which package(s) you are working in from the file paths in your task. Check the package's dependencies (`package.json`) to identify which framework it uses, then read the matching docs.
 
 **React / Preact:**
-- [react/architecture-decisions.md](./docs/react/architecture-decisions.md) – Component structure, hooks, naming, JSX domain folders
+- [react/architecture-decisions.md](./references/react/architecture-decisions.md) – Component structure, hooks, naming, JSX domain folders
 
 **TanStack Start:**
-- [tanstack-start/architecture-decisions.md](./docs/tanstack-start/architecture-decisions.md) – Features/screens, serverFns, queries, code placement hierarchy
+- [tanstack-start/architecture-decisions.md](./references/tanstack-start/architecture-decisions.md) – Features/screens, serverFns, queries, code placement hierarchy
 
 **NestJS:**
-- [nestjs/architecture-decisions.md](./docs/nestjs/architecture-decisions.md) – Route modules, DTOs, guards, jobs, kebab-case naming
+- [nestjs/architecture-decisions.md](./references/nestjs/architecture-decisions.md) – Route modules, DTOs, guards, jobs, kebab-case naming
 
 ### Package-Specific (read when touching that package)
 
-For each affected package, check if a subdirectory exists under `docs/` matching that package name. If it does, read all docs in it. Packages without dedicated docs follow only the shared and framework docs.
+For each affected package, check if a subdirectory exists under `references/` matching that package name. If it does, read all docs in it. Packages without dedicated docs follow only the shared and framework docs.

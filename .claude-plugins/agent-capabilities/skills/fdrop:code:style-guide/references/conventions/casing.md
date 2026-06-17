@@ -8,5 +8,5 @@
 | Interfaces        | PascalCase                            | `UserProfile`, `ApiResponse`              |
 | Types             | PascalCase                            | `UserId`, `RequestOptions`                |
 | Value constants   | camelCase                             | `maxRetries`, `emailRegex`                |
-| Named constants   | PascalCase                            | `Action`, `LogLevel` (see [named-constants.md](./named-constants.md)) |
+| Named constants   | PascalCase                            | `Action`, `LogLevel` (see [named-constants.md](../patterns/named-constants.md)) |
 | File names        | See [file-naming.md](./file-naming.md) | —                                         |

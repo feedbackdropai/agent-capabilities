@@ -96,7 +96,7 @@ Estimate the count of source files the feature requires creating or modifying (e
 
 ## Step 4: Draft (Retry Gate)
 
-Read [plan-template.md](./docs/plan-template.md). Spawn **one** `fdrop:agent:plan-writer` subagent (Agent tool, `subagent_type: "fdrop:agent:plan-writer"`) for all plan files — a single spawn keeps cross-phase chaining consistent. The prompt must contain:
+Read [plan-template.md](./references/plan-template.md). Spawn **one** `fdrop:agent:plan-writer` subagent (Agent tool, `subagent_type: "fdrop:agent:plan-writer"`) for all plan files — a single spawn keeps cross-phase chaining consistent. The prompt must contain:
 
 1. The feature description
 2. The decisions record from Step 2

@@ -2,7 +2,7 @@
 
 ## Module Boundaries
 
-A **folder-module** (a feature, route, screen, graduated class or component — see the [architecture decisions](../../fdrop:code:architecture/docs/architecture-decisions.md#modules--the-graduation-rule)) has a public API: its `index.ts`.
+A **folder-module** (a feature, route, screen, graduated class or component — see the [architecture decisions](../../../fdrop:code:architecture/references/architecture-decisions.md#modules--the-graduation-rule)) has a public API: its `index.ts`.
 
 **The boundary rule:**
 
@@ -41,7 +41,7 @@ import { normalizeRecord } from '@/ingestion/common/utils/normalizeRecord';
 
 #### Example Function
 
-**`myNewMethod.ts`** (file name follows [per-package convention](./file-naming.md))
+**`myNewMethod.ts`** (file name follows [per-package convention](../conventions/file-naming.md))
 
 ```typescript
 export const myNewMethod = () => {

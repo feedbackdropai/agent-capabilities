@@ -33,7 +33,7 @@ Prefer functions by default — they are simpler, more testable, and easier to r
 - **Multiple implementations of a shared interface** (polymorphism is the design)
 - **The framework requires it** (e.g., NestJS DI)
 
-Static-only classes are banned — they are modules wearing costumes. See [classes.md](../../fdrop:code:style-guide/docs/classes.md#when-to-use-a-class--the-bright-line) for the full rule and examples.
+Static-only classes are banned — they are modules wearing costumes. See [classes.md](../../fdrop:code:style-guide/references/patterns/classes.md#when-to-use-a-class--the-bright-line) for the full rule and examples.
 
 ## Code Placement Philosophy
 
@@ -50,12 +50,12 @@ When creating or extracting shared code, follow these principles:
 
 **Additional rules:**
 
-- Import granularity follows the module boundary rule (see [module-boundaries.md](../../fdrop:code:style-guide/docs/module-boundaries.md#module-boundaries)): **within your own module, deep-import the specific file** (`from '@/common/utils/formatDate'`); **across a module boundary, import the module's `index.ts` only**. Never import from a package-root barrel like `@common`.
+- Import granularity follows the module boundary rule (see [module-boundaries.md](../../fdrop:code:style-guide/references/structure/module-boundaries.md#module-boundaries)): **within your own module, deep-import the specific file** (`from '@/common/utils/formatDate'`); **across a module boundary, import the module's `index.ts` only**. Never import from a package-root barrel like `@common`.
 - If your project doesn't use path aliases, use relative paths consistently
 
 ## File Naming Conventions
 
-**Files** follow the rule in the style guide's [file-naming doc](../../fdrop:code:style-guide/docs/file-naming.md): the filename matches the export name including its casing (camelCase exports → camelCase files, PascalCase exports → PascalCase files), with framework mandates overriding.
+**Files** follow the rule in the style guide's [file-naming doc](../../fdrop:code:style-guide/references/conventions/file-naming.md): the filename matches the export name including its casing (camelCase exports → camelCase files, PascalCase exports → PascalCase files), with framework mandates overriding.
 
 **Folders** follow the rule in [folder-structure.md](./folder-structure.md#folder-naming): container and category folders are `camelCase`; a folder that graduated from a single class or component takes that item's PascalCase name; framework mandates (e.g., NestJS, URL-mapped routes) override.
 

@@ -50,7 +50,7 @@ export class DateUtils {
 
 ### Return Types on Methods
 
-Public methods of an exported class are exported surface — declare their return types (see [typescript.md](./typescript.md#return-types--explicit-on-exports-inferred-internally)). `private` methods infer, like any internal. The interface-pinned exception applies: a method implementing a declared interface is already contracted and need not restate the type.
+Public methods of an exported class are exported surface — declare their return types (see [typescript.md](../typescript/return-types.md#return-types--explicit-on-exports-inferred-internally)). `private` methods infer, like any internal. The interface-pinned exception applies: a method implementing a declared interface is already contracted and need not restate the type.
 
 ✅ GOOD: Inline type for class instance method
 
@@ -127,7 +127,7 @@ export class Person {
 
 ## File vs Folder — The Graduation Rule
 
-Classes follow the same [graduation rule](../../fdrop:code:architecture/docs/architecture-decisions.md#modules--the-graduation-rule) as everything else:
+Classes follow the same [graduation rule](../../../fdrop:code:architecture/references/architecture-decisions.md#modules--the-graduation-rule) as everything else:
 
 - **A class starts as a single file** — `RateLimiter.ts` with its test beside it. Small class, no companions, compiler-enforced privacy for free. Non-exported helper functions may co-locate in the class file.
 - **A class graduates to a folder** — `HttpClient/` — when it needs private companions: bundled utils, interfaces, or constants that exist only to serve it.
@@ -162,7 +162,7 @@ HttpClient/
 
 ### Interfaces and Types – Same Folder
 
-See [type-placement.md](./type-placement.md#interfaces-vs-types--same-folder-pick-by-fit) for the full rule and examples. In short: both `export interface` and `export type` declarations live in `types/`; the keyword is a per-declaration choice, not a folder decision.
+See [type-placement.md](../structure/type-placement.md#interfaces-vs-types--same-folder-pick-by-fit) for the full rule and examples. In short: both `export interface` and `export type` declarations live in `types/`; the keyword is a per-declaration choice, not a folder decision.
 
 ### Example – Class Barrel File
 

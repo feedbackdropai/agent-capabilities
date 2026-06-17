@@ -32,37 +32,40 @@ Before analyzing code, read these documents:
 
 ### Architecture
 
-- [folder-structure.md](../code:architecture/docs/folder-structure.md) – Folder organization
-- [architecture-decisions.md](../code:architecture/docs/architecture-decisions.md) – Architectural patterns
+- [folder-structure.md](../fdrop:code:architecture/references/folder-structure.md) – Folder organization
+- [architecture-decisions.md](../fdrop:code:architecture/references/architecture-decisions.md) – Architectural patterns
 
 ### Style Guide
 
-- [formatting.md](../code:style-guide/docs/formatting.md) – Language, formatter, and linter baseline
-- [casing.md](../code:style-guide/docs/casing.md) – Identifier casing
-- [file-naming.md](../code:style-guide/docs/file-naming.md) – File-name casing and resolution order
-- [variable-declaration.md](../code:style-guide/docs/variable-declaration.md) – Variable naming and inline-vs-hoisted scalars
-- [naming.md](../code:style-guide/docs/naming.md) – Naming consistency and naming for reuse
-- [functions.md](../code:style-guide/docs/functions.md) – Function patterns
-- [classes.md](../code:style-guide/docs/classes.md) – Class patterns
-- [named-constants.md](../code:style-guide/docs/named-constants.md) – Named constants (unions + `const` objects)
-- [typescript.md](../code:style-guide/docs/typescript.md) – TypeScript rules
-- [one-export-per-file.md](../code:style-guide/docs/one-export-per-file.md) – One exported item per file
-- [import-paths.md](../code:style-guide/docs/import-paths.md) – Path-alias import strategy
-- [module-boundaries.md](../code:style-guide/docs/module-boundaries.md) – Module boundaries, exports, and barrels
-- [type-placement.md](../code:style-guide/docs/type-placement.md) – Where types and interfaces live
-- [constant-placement.md](../code:style-guide/docs/constant-placement.md) – Where constants live
+- [conventions/formatting.md](../fdrop:code:style-guide/references/conventions/formatting.md) – Language, formatter, and linter baseline
+- [conventions/casing.md](../fdrop:code:style-guide/references/conventions/casing.md) – Identifier casing
+- [conventions/file-naming.md](../fdrop:code:style-guide/references/conventions/file-naming.md) – File-name casing and resolution order
+- [conventions/variable-declaration.md](../fdrop:code:style-guide/references/conventions/variable-declaration.md) – Variable naming and inline-vs-hoisted scalars
+- [conventions/naming.md](../fdrop:code:style-guide/references/conventions/naming.md) – Naming consistency and naming for reuse
+- [patterns/functions.md](../fdrop:code:style-guide/references/patterns/functions.md) – Function patterns
+- [patterns/classes.md](../fdrop:code:style-guide/references/patterns/classes.md) – Class patterns
+- [patterns/named-constants.md](../fdrop:code:style-guide/references/patterns/named-constants.md) – Named constants (unions + `const` objects)
+- [typescript/return-types.md](../fdrop:code:style-guide/references/typescript/return-types.md) – Explicit return types on exports
+- [typescript/import-type.md](../fdrop:code:style-guide/references/typescript/import-type.md) – `import type` for type-only imports
+- [typescript/avoid-any.md](../fdrop:code:style-guide/references/typescript/avoid-any.md) – Avoid `any`; prefer `unknown`/narrowing
+- [typescript/type-assertions.md](../fdrop:code:style-guide/references/typescript/type-assertions.md) – Avoid `as`; prefer narrowing
+- [structure/one-export-per-file.md](../fdrop:code:style-guide/references/structure/one-export-per-file.md) – One exported item per file
+- [structure/import-paths.md](../fdrop:code:style-guide/references/structure/import-paths.md) – Path-alias import strategy
+- [structure/module-boundaries.md](../fdrop:code:style-guide/references/structure/module-boundaries.md) – Module boundaries, exports, and barrels
+- [structure/type-placement.md](../fdrop:code:style-guide/references/structure/type-placement.md) – Where types and interfaces live
+- [structure/constant-placement.md](../fdrop:code:style-guide/references/structure/constant-placement.md) – Where constants live
 
 ### Documentation
 
-- [ts-docs.md](../code:documentation/docs/ts-docs.md) – TSDoc/JSDoc style guide for TypeScript
+- [ts-docs.md](../fdrop:code:documentation/references/ts-docs.md) – TSDoc/JSDoc style guide for TypeScript
 
 ### React
 
-- [react/patterns-components.md](./docs/react/patterns-components.md) – React component and hook size thresholds
+- [react/patterns-components.md](./references/react/patterns-components.md) – React component and hook size thresholds
 
 ### Refactor Plan
 
-- [refactor-plan.md](./docs/refactor-plan.md) – Instructions for generating the refactor plan
+- [refactor-plan.md](./references/refactor-plan.md) – Instructions for generating the refactor plan
 
 ## Instructions
 
