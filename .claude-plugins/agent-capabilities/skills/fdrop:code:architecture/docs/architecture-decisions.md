@@ -57,7 +57,7 @@ When creating or extracting shared code, follow these principles:
 
 **Files** follow the rule in the style guide's [conventions doc](../../fdrop:code:style-guide/docs/conventions.md#file-naming): the filename matches the export name including its casing (camelCase exports → camelCase files, PascalCase exports → PascalCase files), with framework mandates overriding.
 
-**Folders** default to `kebab-case` (`feature-a/`, `api-tokens/`) — except a class or component folder, which matches its PascalCase name (`HttpClient/`).
+**Folders** follow the rule in [folder-structure.md](./folder-structure.md#folder-naming): container and category folders are `kebab-case`; a folder that graduated from a single class or component takes that item's PascalCase name.
 
 Packages with their own architecture docs may define their own conventions — defer to those docs where they diverge.
 
