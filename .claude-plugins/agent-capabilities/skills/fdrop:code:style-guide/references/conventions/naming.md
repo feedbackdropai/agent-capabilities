@@ -20,18 +20,18 @@ The test: "Could someone use this in a completely different part of the app with
 
 | Category | ❌ Bad (context-specific) | ✅ Good (generic, reusable) |
 | --- | --- | --- |
-| CSS variables | `--heading-navy`, `--sidebar-text` | `--drop-navy`, `--text-muted` |
 | Value constants | `heroMaxWidth`, `pricingCardGap` | `maxContentWidth`, `cardGap` |
 | Utils | `formatPricingDate()` | `formatDate()` |
 | Named constants | `HeroButtonVariant` | `ButtonVariant` |
 | Components | `PricingPageCard` | `PlanCard` |
+| Types/Interfaces | `PricingPageProps` | `PlanCardProps` |
 
-This applies to everything you extract or create: CSS custom properties, Tailwind theme tokens, constants, utility functions, components, interfaces, and types.
+This applies to everything you extract or create: constants, utility functions, components, interfaces, and types.
 
 **When extracting code**, always ask:
 
 1. Is this name tied to a specific screen, section, or feature when it doesn't need to be?
-2. Does the existing codebase have a naming pattern for this kind of thing? (e.g., `--drop-*` for brand colors)
+2. Does the existing codebase have a naming pattern for this kind of thing?
 3. Will this name still make sense if the item moves to `common/` later?
 
 If a value is truly feature-specific and will never be reused, scoping the name is fine. But default to generic — you can always narrow later, but renaming a widely-used token is expensive.

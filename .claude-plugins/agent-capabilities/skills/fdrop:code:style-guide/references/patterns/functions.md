@@ -252,33 +252,44 @@ export const getUserDisplayName = ({ user }: Params): string => {
 
 ### Single Return Point (Business Logic)
 
-**`calculateFinalScore.ts`**
+The rule earns its keep when a shared post-step must apply to **every** path. Scattered returns let that step silently diverge between branches; a single return writes it once.
+
+**`calculateShippingCost.ts`**
 
 ```typescript
 interface Params {
-	score: number;
-	hasBonus: boolean;
+	weightKg: number;
+	isExpress: boolean;
+	destination: ShippingZone;
 }
 
-export const calculateFinalScore = ({ score, hasBonus }: Params): number => {
-	const bonus = 10;
-	let finalScore = score;
+export const calculateShippingCost = ({ weightKg, isExpress, destination }: Params): number => {
+	let cost = weightKg * destination.ratePerKg;
 
-	if (hasBonus) {
-		finalScore = finalScore + bonus;
+	if (isExpress) {
+		cost += destination.expressSurcharge;
 	}
 
-	return finalScore;
+	// Minimum-charge floor applies to every path — single return means it's written once.
+	if (cost < destination.minimumCharge) {
+		cost = destination.minimumCharge;
+	}
+
+	return cost;
 };
 ```
 
-❌ BAD: Multiple returns scattered in business logic
+❌ BAD: Scattered returns — the floor has to be repeated on each path, and one path forgot it
 
 ```typescript
-export const calculateFinalScore = ({ score, hasBonus }: Params): number => {
-	if (hasBonus) {
-		return score + 10; // Avoid — return buried in logic
+export const calculateShippingCost = ({ weightKg, isExpress, destination }: Params): number => {
+	if (isExpress) {
+		return Math.max(
+			weightKg * destination.ratePerKg + destination.expressSurcharge,
+			destination.minimumCharge,
+		);
 	}
-	return score;
+
+	return weightKg * destination.ratePerKg; // BUG: minimum-charge floor silently skipped on this path
 };
 ```
