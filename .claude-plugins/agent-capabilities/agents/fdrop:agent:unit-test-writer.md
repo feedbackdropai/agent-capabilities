@@ -38,7 +38,7 @@ If any check fails, report the error and return immediately without writing any 
 
 ### Phase 1: Load Skills
 
-**Unit test standards:** If your prompt includes a `---` fenced overrides block with `unit-test-standards`, load that value. The value can be a skill name (e.g., `/fdrop:code:tests:unit:jest`) loaded via the Skill tool, or a file path (e.g., `./docs/test_standards.md`) loaded via the Read tool. Otherwise, load the default:
+**Unit test standards:** If your prompt includes a `---` fenced overrides block with `unit-test-standards`, load that value. The value can be a skill name (e.g., `/fdrop:code:tests:unit:jest`) loaded via the Skill tool, or a file path (e.g., `./references/test_standards.md`) loaded via the Read tool. Otherwise, load the default:
 
 ```
 /fdrop:code:tests:unit:jest

@@ -26,7 +26,7 @@ In both modes, the plan is authoritative — do not reinterpret or second-guess 
 
 Before doing anything else, load the standards skill and any extra context provided by the orchestrator.
 
-**Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fdrop:code:standards`) loaded via the Skill tool, or a file path (e.g. `./docs/standards.md`) loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
+**Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fdrop:code:standards`) loaded via the Skill tool, or a file path (e.g. `./references/standards.md`) loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
 
 ```
 /fdrop:code:standards
