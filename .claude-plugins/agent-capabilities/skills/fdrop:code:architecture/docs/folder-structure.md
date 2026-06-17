@@ -14,12 +14,16 @@ The folder trees in this document describe **folder-modules** — see [Modules &
 
 ## Folder Naming
 
-Folders follow the same **match-the-name** principle as files: a folder is named after what it holds.
+Folders follow the same **match-the-name** principle as files: a folder is named after what it holds, in that name's own casing.
 
-- **Category and container folders** – `kebab-case`. This covers the `common/` subfolders (`utils/`, `types/`, `constants/`), domain folders (`formatting/`, `validation/`), and feature/route/screen folders (`feature-a/`, `api-tokens/`).
+- **Category and container folders** – `camelCase`. This covers the `common/` subfolders (`utils/`, `types/`, `constants/`), domain folders (`formatting/`, `validation/`), and feature/screen folders (`apiTokens/`, `featureA/`). Single-word folders (`utils/`, `types/`) read identically either way.
 - **A folder that graduated from a single named item** – takes that item's name *and casing*. A class or component folder is therefore `PascalCase` (`HttpClient/`, `IssuePanel/`), matching the `HttpClient.ts` / `IssuePanel.tsx` it grew from. This keeps the name stable through graduation — the container never disagrees with its contents.
 
-Framework/package docs may override this (e.g., NestJS uses `kebab-case` throughout) — defer to them where they diverge.
+**Resolve casing in this order** (same as [file naming](../../fdrop:code:style-guide/docs/conventions.md#file-naming)):
+
+1. **An established convention in the directory** – match what neighboring folders already use
+2. **The package's framework doc** – e.g., NestJS uses `kebab-case` throughout, and route segments that map to URLs are `kebab-case`; defer to the framework where it mandates a casing
+3. **Default** – `camelCase`, or `PascalCase` for a folder graduated from a PascalCase item, per the rule above
 
 | Folder      | Contents                                 | Example                         |
 | ----------- | ---------------------------------------- | ------------------------------- |
@@ -73,31 +77,31 @@ src/
 │ │ ├─ index.ts
 │ │ └─ ApiClient.ts
 │
-├─ feature-a/
-│ ├─ common/ # Shared within feature-a only
+├─ featureA/
+│ ├─ common/ # Shared within featureA only
 │ │ ├─ utils/
 │ │ │ ├─ index.ts
 │ │ │ └─ featureAHelper.ts
 │ │ ├─ types/
 │ │ │ ├─ index.ts
 │ │ │ └─ FeatureAOptions.ts
-│ ├─ feature-a.ts
+│ ├─ featureA.ts
 │ └─ index.ts
 │
-├─ feature-b/
-│ ├─ common/ # Shared within feature-b only
+├─ featureB/
+│ ├─ common/ # Shared within featureB only
 │ │ ├─ utils/
 │ │ │ ├─ index.ts
 │ │ │ └─ featureBHelper.ts
-│ ├─ feature-b.ts
+│ ├─ featureB.ts
 │ └─ index.ts
 ```
 
 ### Reading the hierarchy
 
-- `src/common/` → Used by **both** `feature-a/` and `feature-b/`
-- `src/feature-a/common/` → Used **only** within `feature-a/`
-- If `featureAHelper.ts` is later needed by `feature-b`, promote it to `src/common/utils/`
+- `src/common/` → Used by **both** `featureA/` and `featureB/`
+- `src/featureA/common/` → Used **only** within `featureA/`
+- If `featureAHelper.ts` is later needed by `featureB`, promote it to `src/common/utils/`
 
 ## Cross-Package Sharing (`packages/shared/`)
 

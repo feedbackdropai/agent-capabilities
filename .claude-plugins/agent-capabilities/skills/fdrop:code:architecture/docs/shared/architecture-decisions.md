@@ -30,14 +30,14 @@ Each domain folder follows the same `common/` pattern as the rest of the monorep
 
 ## File Naming Conventions
 
-All files use `camelCase.ts` naming. Folders use `kebab-case`.
+This package's established convention is `camelCase.ts` for all files. Folders follow the default — `camelCase`, or `PascalCase` for a folder graduated from a PascalCase item (see [folder-structure.md](../folder-structure.md#folder-naming)).
 
 | File type | Convention | Example |
 |-----------|------------|---------|
 | Utils | `camelCase.ts` | `hasPermission.ts` |
 | Constants | `camelCase.ts` | `planLimits.ts` |
 | Types & interfaces | `camelCase.ts` | `permissionContext.ts` |
-| Folders | `kebab-case` | `permissions/`, `errors/` |
+| Folders | `camelCase` | `permissions/`, `errors/` |
 
 ## Barrel Exports (`index.ts`)
 

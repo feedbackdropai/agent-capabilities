@@ -57,7 +57,7 @@ When creating or extracting shared code, follow these principles:
 
 **Files** follow the rule in the style guide's [conventions doc](../../fdrop:code:style-guide/docs/conventions.md#file-naming): the filename matches the export name including its casing (camelCase exports → camelCase files, PascalCase exports → PascalCase files), with framework mandates overriding.
 
-**Folders** follow the rule in [folder-structure.md](./folder-structure.md#folder-naming): container and category folders are `kebab-case`; a folder that graduated from a single class or component takes that item's PascalCase name.
+**Folders** follow the rule in [folder-structure.md](./folder-structure.md#folder-naming): container and category folders are `camelCase`; a folder that graduated from a single class or component takes that item's PascalCase name; framework mandates (e.g., NestJS, URL-mapped routes) override.
 
 Packages with their own architecture docs may define their own conventions — defer to those docs where they diverge.
 
