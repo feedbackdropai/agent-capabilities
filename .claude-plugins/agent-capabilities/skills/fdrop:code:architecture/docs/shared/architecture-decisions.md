@@ -38,7 +38,3 @@ This package's established convention is `camelCase.ts` for all files. Folders f
 | Constants | `camelCase.ts` | `planLimits.ts` |
 | Types & interfaces | `camelCase.ts` | `permissionContext.ts` |
 | Folders | `camelCase` | `permissions/`, `errors/` |
-
-## Barrel Exports (`index.ts`)
-
-Barrel exports follow the shared rules in [architecture-decisions.md](../architecture-decisions.md#barrel-exports-indexts). No package-specific additions.

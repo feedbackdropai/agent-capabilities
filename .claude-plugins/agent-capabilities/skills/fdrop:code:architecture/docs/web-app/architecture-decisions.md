@@ -25,12 +25,6 @@ src/
 
 Read `packages/web-app/tsconfig.json` → `compilerOptions.paths` for the current alias map. Do not hardcode aliases from memory — the tsconfig is the source of truth.
 
-## Barrel Exports (`index.ts`)
-
-Barrel exports follow the shared rules in [architecture-decisions.md](../architecture-decisions.md#barrel-exports-indexts). Web-app-specific addition:
-
-- **Import paths use the path alias from tsconfig** — e.g., `export { useIssues } from '@/features/issues/hooks/useIssues'`
-
 ## Key Patterns
 
 ### Generated GraphQL Types

@@ -65,9 +65,3 @@ Mastra AI integration for agents and workflows. Code that depends on the Mastra 
 ## Import Aliases
 
 Read `packages/backend-api/tsconfig.json` → `compilerOptions.paths` for the current alias map. Do not hardcode aliases from memory — the tsconfig is the source of truth.
-
-## Barrel Exports (`index.ts`)
-
-Barrel exports follow the shared rules in [architecture-decisions.md](../architecture-decisions.md#barrel-exports-indexts). Backend-api-specific addition:
-
-- **Import paths use aliases** — e.g., `export { EventsService } from '@routes/events/events.service'`
