@@ -53,5 +53,5 @@ All files use `kebab-case` naming:
 | Tests | `kebab-case.{suffix}.unit.test.ts` | `events.service.unit.test.ts` |
 | DTOs (inputs) | `kebab-case.input.ts` | `session.input.ts` |
 | DTOs (models) | `kebab-case.model.ts` | `session-response.model.ts` |
-| Enums, constants | `kebab-case.ts` | `asset-type.ts`, `s3-bucket-name.ts` |
+| Constants | `kebab-case.ts` | `asset-type.ts`, `s3-bucket-name.ts` |
 | Folders | `kebab-case` | `api-tokens/`, `console-logs/` |

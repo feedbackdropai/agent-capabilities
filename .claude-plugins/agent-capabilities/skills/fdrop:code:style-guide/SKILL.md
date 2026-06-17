@@ -16,5 +16,5 @@ Before writing any code, read these documents:
 - [functions.md](./docs/functions.md) – Function patterns
 - [classes.md](./docs/classes.md) – Class patterns
 - [imports-exports.md](./docs/imports-exports.md) – Import/export rules
-- [enums.md](./docs/enums.md) – Enum rules
+- [named-constants.md](./docs/named-constants.md) – Named constants (unions + `const` objects)
 - [typescript.md](./docs/typescript.md) – TypeScript rules

@@ -41,7 +41,7 @@ Before analyzing code, read these documents:
 - [functions.md](../code:style-guide/docs/functions.md) – Function patterns
 - [classes.md](../code:style-guide/docs/classes.md) – Class patterns
 - [imports-exports.md](../code:style-guide/docs/imports-exports.md) – Import/export rules
-- [enums.md](../code:style-guide/docs/enums.md) – Enum rules
+- [named-constants.md](../code:style-guide/docs/named-constants.md) – Named constants (unions + `const` objects)
 - [typescript.md](../code:style-guide/docs/typescript.md) – TypeScript rules
 
 ### Documentation

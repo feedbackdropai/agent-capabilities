@@ -16,7 +16,7 @@ The folder trees in this document describe **folder-modules** — see [Modules &
 
 Folders follow the same **match-the-name** principle as files: a folder is named after what it holds.
 
-- **Category and container folders** – `kebab-case`. This covers the `common/` subfolders (`utils/`, `types/`, `enums/`), domain folders (`formatting/`, `validation/`), and feature/route/screen folders (`feature-a/`, `api-tokens/`).
+- **Category and container folders** – `kebab-case`. This covers the `common/` subfolders (`utils/`, `types/`, `constants/`), domain folders (`formatting/`, `validation/`), and feature/route/screen folders (`feature-a/`, `api-tokens/`).
 - **A folder that graduated from a single named item** – takes that item's name *and casing*. A class or component folder is therefore `PascalCase` (`HttpClient/`, `IssuePanel/`), matching the `HttpClient.ts` / `IssuePanel.tsx` it grew from. This keeps the name stable through graduation — the container never disagrees with its contents.
 
 Framework/package docs may override this (e.g., NestJS uses `kebab-case` throughout) — defer to them where they diverge.
@@ -107,7 +107,7 @@ When code is needed by 2+ packages, it belongs in a shared package (e.g., `packa
 
 - The code is needed by 2+ packages
 - It has zero framework dependencies (no React, NestJS, Prisma, etc.)
-- It defines a contract both sides must agree on (enums, constants, error codes, pure predicates)
+- It defines a contract both sides must agree on (constants, error codes, pure predicates)
 
 ### When NOT to use `packages/shared/`
 

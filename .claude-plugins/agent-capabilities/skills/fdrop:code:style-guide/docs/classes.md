@@ -130,14 +130,14 @@ export class Person {
 Classes follow the same [graduation rule](../../fdrop:code:architecture/docs/architecture-decisions.md#modules--the-graduation-rule) as everything else:
 
 - **A class starts as a single file** — `RateLimiter.ts` with its test beside it. Small class, no companions, compiler-enforced privacy for free. Non-exported helper functions may co-locate in the class file.
-- **A class graduates to a folder** — `HttpClient/` — when it needs private companions: bundled utils, interfaces, enums, or constants that exist only to serve it.
+- **A class graduates to a folder** — `HttpClient/` — when it needs private companions: bundled utils, interfaces, or constants that exist only to serve it.
 
 Do NOT create a folder for a class that has no companions — that is ceremony, not structure.
 
 ### Folder Structure (when graduated)
 
 - Class folder name matches the class name
-- Companion items go under a `common/` folder, organized by category (`utils/`, `types/`, `enums/`, `constants/`), each with a barrel `index.ts`
+- Companion items go under a `common/` folder, organized by category (`utils/`, `types/`, `constants/`), each with a barrel `index.ts`
 - The class folder's `index.ts` exports the class — it is the module's public API, and the boundary rule applies: outsiders import only from it
 
 ### Folder Structure – Example
@@ -152,7 +152,7 @@ HttpClient/
 │  ├─ types/
 │  │  ├─ index.ts
 │  │  └─ RequestOptions.ts
-│  ├─ enums/
+│  ├─ constants/
 │  │  ├─ index.ts
 │  │  └─ RetryStrategy.ts
 ├─ HttpClient.ts

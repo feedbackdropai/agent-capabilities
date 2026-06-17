@@ -2,7 +2,7 @@
 
 ## One Exported Item Per File
 
-- Each **exported** function, class, interface, type, enum, or constant has its own dedicated file
+- Each **exported** function, class, interface, type, or constant has its own dedicated file
 - The file name matches the exported item name (cased per the package's file-naming convention)
 - Non-exported items (private helpers, local types) may co-locate with the export they serve
 
@@ -15,7 +15,7 @@ These are the **only** cases where a file may contain more than one item. Every 
 | 1 | `Params` / `ConstructorParams` interfaces | Stays in the file of its function/class; not exported independently |
 | 2 | Private helpers | Not exported; called only within this file (see [functions.md](./functions.md#private-helpers-may-co-locate)) |
 | 3 | Discriminated union families | A union type and its member types share one file when the members exist only as constituents of that union |
-| 4 | Enum + derived lookup map | A lookup map keyed by the enum (`Record<MyEnum, …>`) may live in the enum's file (see [enums.md](./enums.md#derived-lookup-maps-may-co-locate)) |
+| 4 | Named constant + derived lookup map | A lookup map keyed by the union (`Record<MyType, …>`) may live in the `const` object's file (see [named-constants.md](./named-constants.md#derived-lookup-maps-may-co-locate)) |
 
 ### Multiple Exported Items — Still Not Negotiable
 
@@ -62,22 +62,22 @@ export const defaultConfig: Config = { name: 'default' };
 **`common/types/SyncEvent.ts`**
 
 ```typescript
-import { SyncEventKind } from '@/common/enums/SyncEventKind';
+import { SyncEventKind } from '@/common/constants/SyncEventKind';
 
 export interface FileAddedEvent {
-	kind: SyncEventKind.FileAdded;
+	kind: typeof SyncEventKind.FileAdded;
 	path: string;
 }
 
 export interface RecordParsedEvent {
-	kind: SyncEventKind.RecordParsed;
+	kind: typeof SyncEventKind.RecordParsed;
 	recordId: string;
 }
 
 export type SyncEvent = FileAddedEvent | RecordParsedEvent;
 ```
 
-The discriminant uses enum members, not raw literals — see [enums.md](./enums.md#discriminants-use-enum-members). The enum lives in its own file in `enums/`.
+The discriminant references the `const` object, not raw literals — see [named-constants.md](./named-constants.md#discriminants-use-the-const-object). The `const` object lives in its own file in `constants/`.
 
 The members exist only as constituents of `SyncEvent` — splitting them across files would fragment one concept. If a member type starts being used independently of the union, it moves to its own file.
 
@@ -154,7 +154,7 @@ import { normalizeRecord } from '@/ingestion/common/utils/normalizeRecord';
 ### Functions and Classes
 
 - Always use named exports
-- Export class, method, interface, enums, etc. on the same line it is defined
+- Export class, method, interface, constant, etc. on the same line it is defined
 
 #### Example Function
 
@@ -187,15 +187,17 @@ export interface MyInterface {
 }
 ```
 
-#### Example Enum
+#### Example Named Constant
 
-**`MyEnum.ts`**
+**`MyConstant.ts`**
 
 ```typescript
-export enum MyEnum {
-	Value1 = 'value1',
-	Value2 = 'value2',
-}
+export const MyConstant = {
+	Value1: 'value1',
+	Value2: 'value2',
+} as const;
+
+export type MyConstant = (typeof MyConstant)[keyof typeof MyConstant];
 ```
 
 ## Barrel Files (`index.ts`)
@@ -220,7 +222,7 @@ export type { RawRecord } from '@/ingestion/common/types/RawRecord';
 
 `RawRecord` is re-exported from a subfolder *on purpose* — it is part of the module's contract. `normalizeRecord` is not exported — it is internal, and the lint boundary makes that real.
 
-## Folder Organization for Types, Constants, and Enums
+## Folder Organization for Types and Constants
 
 Organize shared items in their own folders based on what they are:
 
@@ -228,9 +230,8 @@ Organize shared items in their own folders based on what they are:
 | ------------------ | ------------------- | --------------------------------------- |
 | Types & interfaces | `common/types/`     | `export type …` / `export interface …`  |
 | Constants          | `common/constants/` | `export const …`                        |
-| Enums              | `common/enums/`     | `export enum …`                         |
 
-Both `export type` and `export interface` declarations live in `common/types/` — the folder groups type-level declarations regardless of keyword. A discriminated union family (exception 3) lives in `types/` under the union's name. An enum with its lookup map (exception 4) lives in `enums/` under the enum's name.
+Both `export type` and `export interface` declarations live in `common/types/` — the folder groups type-level declarations regardless of keyword. A discriminated union family (exception 3) lives in `types/` under the union's name. A `const` object with its derived union and lookup map (exception 4) lives in `constants/` under the object's name.
 
 ## Interfaces vs Types — Same Folder, Pick by Fit
 

@@ -31,7 +31,7 @@ Contains the NestJS application code that implements business logic.
 - **`models/`** - Auto-generated CRUD modules from Prisma schema (do not edit directly)
 - **`routes/`** - Custom route modules with business logic
 - **`modules/`** - Shared NestJS modules (queue, integrations)
-- **`common/`** - App-wide constants, enums, inputs, scalars
+- **`common/`** - App-wide constants, inputs, scalars
 
 ### `base/` - Foundation Layer
 
@@ -49,7 +49,7 @@ Mastra AI integration for agents and workflows. Code that depends on the Mastra 
 - **`agents/`** - AI agent definitions
 - **`providers/`** - Model providers (OpenAI)
 - **`tools/`** - Agent tools
-- **`common/`** - AI-specific enums and utilities
+- **`common/`** - AI-specific constants and utilities
 
 > This layer is intentionally lightweight — follow the subfolder conventions above and the shared architecture rules. No additional framework-specific patterns apply.
 

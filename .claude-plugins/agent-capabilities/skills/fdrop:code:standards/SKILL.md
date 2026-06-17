@@ -26,7 +26,7 @@ When rules conflict, apply them in this order (highest wins):
 Before writing any code, load these skills:
 
 - Load `/fdrop:code:architecture` — shared architecture rules plus package-specific rules loaded conditionally based on which package(s) you are working in.
-- Load `/fdrop:code:style-guide` — function/class patterns, import/export rules, enum rules, and TypeScript rules.
+- Load `/fdrop:code:style-guide` — function/class patterns, import/export rules, named-constant rules, and TypeScript rules.
 - Load `/fdrop:code:documentation` — TSDoc/JSDoc standards for TypeScript.
 
 ## Enforcement
