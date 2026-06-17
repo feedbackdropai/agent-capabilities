@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 # Style Guide
 
-**CRITICAL:** Every line of code you write MUST comply with all rules in the below documentation. These are requirements, not guidelines. Consistent style makes the codebase readable and maintainable.
+Follow the rules in the linked docs — they're requirements, not suggestions. Consistency is what keeps the codebase predictable to edit, for agents and humans alike.
 
 ## Required Reading
 

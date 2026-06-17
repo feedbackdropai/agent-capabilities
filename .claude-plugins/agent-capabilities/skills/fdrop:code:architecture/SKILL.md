@@ -8,9 +8,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 This project may be a single-package repo or a pnpm monorepo. In a monorepo, each package under `packages/` has its own architecture layered on these shared rules.
 
-**CRITICAL:** Every line of code you write MUST comply with all rules in the below documentation. These are requirements, not guidelines. Consistent style makes the codebase readable and maintainable.
+Follow the rules in the linked docs — they're requirements, not suggestions. Consistency is what keeps the codebase predictable to edit, for agents and humans alike.
 
-**Precedence:** Package-specific docs override framework docs, which override shared rules, where they explicitly diverge.
+**Precedence (within architecture docs):** Package-specific docs override framework docs, which override shared rules, where they explicitly diverge. This refines the overall [precedence in the standards skill](../fdrop:code:standards/SKILL.md#precedence).
 
 ## Required Reading
 

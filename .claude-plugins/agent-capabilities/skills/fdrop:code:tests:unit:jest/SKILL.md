@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 **Coverage target:** Every new or modified source file must reach 100% line and branch coverage. Coverage is measured per source file, but tests live at **module boundaries** — internals are covered through their module's public API, not by dedicated test files. See the Module Boundary Testing section of [unit-testing.md](./docs/unit-testing.md#module-boundary-testing).
 
-**CRITICAL:** Every line of code you write MUST comply with all rules in the below documentation. These are requirements, not guidelines. Consistent style makes the codebase readable and maintainable.
+Follow the rules in the linked docs — they're requirements, not suggestions. Consistency is what keeps the codebase predictable to edit, for agents and humans alike.
 
 ## Required Reading
 
