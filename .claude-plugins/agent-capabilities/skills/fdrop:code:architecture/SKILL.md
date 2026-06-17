@@ -29,9 +29,6 @@ Determine which package(s) you are working in from the file paths in your task. 
 **TanStack Start:**
 - [tanstack-start/architecture-decisions.md](./references/tanstack-start/architecture-decisions.md) – Features/screens, serverFns, queries, code placement hierarchy
 
-**NestJS:**
-- [nestjs/architecture-decisions.md](./references/nestjs/architecture-decisions.md) – Route modules, DTOs, guards, jobs, kebab-case naming
-
 ### Package-Specific (read when touching that package)
 
 For each affected package, check if a subdirectory exists under `references/` matching that package name. If it does, read all docs in it. Packages without dedicated docs follow only the shared and framework docs.
