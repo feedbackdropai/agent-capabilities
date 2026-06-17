@@ -19,7 +19,7 @@ Folders follow the same **match-the-name** principle as files: a folder is named
 - **Category and container folders** – `camelCase`. This covers the `common/` subfolders (`utils/`, `types/`, `constants/`), domain folders (`formatting/`, `validation/`), and feature/screen folders (`apiTokens/`, `featureA/`). Single-word folders (`utils/`, `types/`) read identically either way.
 - **A folder that graduated from a single named item** – takes that item's name *and casing*. A class or component folder is therefore `PascalCase` (`HttpClient/`, `IssuePanel/`), matching the `HttpClient.ts` / `IssuePanel.tsx` it grew from. This keeps the name stable through graduation — the container never disagrees with its contents.
 
-**Resolve casing in this order** (same as [file naming](../../fdrop:code:style-guide/docs/conventions.md#file-naming)):
+**Resolve casing in this order** (same as [file naming](../../fdrop:code:style-guide/docs/file-naming.md)):
 
 1. **An established convention in the directory** – match what neighboring folders already use
 2. **The package's framework doc** – e.g., NestJS uses `kebab-case` throughout, and route segments that map to URLs are `kebab-case`; defer to the framework where it mandates a casing

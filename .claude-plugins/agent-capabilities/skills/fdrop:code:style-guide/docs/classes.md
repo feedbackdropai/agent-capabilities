@@ -162,7 +162,7 @@ HttpClient/
 
 ### Interfaces and Types – Same Folder
 
-See [imports-exports.md](./imports-exports.md#interfaces-vs-types--same-folder-pick-by-fit) for the full rule and examples. In short: both `export interface` and `export type` declarations live in `types/`; the keyword is a per-declaration choice, not a folder decision.
+See [type-placement.md](./type-placement.md#interfaces-vs-types--same-folder-pick-by-fit) for the full rule and examples. In short: both `export interface` and `export type` declarations live in `types/`; the keyword is a per-declaration choice, not a folder decision.
 
 ### Example – Class Barrel File
 

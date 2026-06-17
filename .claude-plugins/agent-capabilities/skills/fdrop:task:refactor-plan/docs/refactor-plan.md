@@ -58,12 +58,20 @@ Before analyzing code, read these documents:
 
 ### Style Guide
 
-- [conventions.md](../code:style-guide/docs/conventions.md) - General coding conventions
+- [formatting.md](../code:style-guide/docs/formatting.md) - Language, formatter, and linter baseline
+- [casing.md](../code:style-guide/docs/casing.md) - Identifier casing
+- [file-naming.md](../code:style-guide/docs/file-naming.md) - File-name casing and resolution order
+- [variable-declaration.md](../code:style-guide/docs/variable-declaration.md) - Variable naming and inline-vs-hoisted scalars
+- [naming.md](../code:style-guide/docs/naming.md) - Naming consistency and naming for reuse
 - [functions.md](../code:style-guide/docs/functions.md) - Function patterns
 - [classes.md](../code:style-guide/docs/classes.md) - Class patterns
-- [imports-exports.md](../code:style-guide/docs/imports-exports.md) - Import/export rules
 - [named-constants.md](../code:style-guide/docs/named-constants.md) - Named constants (unions + `const` objects)
 - [typescript.md](../code:style-guide/docs/typescript.md) - TypeScript rules
+- [one-export-per-file.md](../code:style-guide/docs/one-export-per-file.md) - One exported item per file
+- [import-paths.md](../code:style-guide/docs/import-paths.md) - Path-alias import strategy
+- [module-boundaries.md](../code:style-guide/docs/module-boundaries.md) - Module boundaries, exports, and barrels
+- [type-placement.md](../code:style-guide/docs/type-placement.md) - Where types and interfaces live
+- [constant-placement.md](../code:style-guide/docs/constant-placement.md) - Where constants live
 
 ### Documentation
 
