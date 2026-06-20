@@ -37,10 +37,13 @@ Scripts used by this orchestrator:
 |-----|---------|
 | `check` | Type checking |
 | `test-unit-coverage` | Unit tests with coverage |
+| `format-write` | Passthrough only — the orchestrator never runs this. If present in the input or config, extract it and forward it to the test-writer agents (Step 3) so they can format the files they write. |
 
 ## Workflow
 
 ### Step 1: Resolve Package and Run Coverage Baseline
+
+Set `iteration = 1`. This counter tracks coverage passes and bounds the loop in Step 5.
 
 Resolve the package's **repo-root-relative path prefix** so you can convert coverage table filenames into full paths. In a monorepo, run the package manager's workspace listing command to resolve the package's path. In a single-package repo, the path prefix is the repo root (`.`).
 
@@ -110,7 +113,7 @@ If no overrides were provided, omit the fenced block (defaults apply).
 
 ### Step 4: Re-run Coverage
 
-After all agents in the current batch complete, run the resolved `test-unit-coverage` command.
+After all batches in the current iteration complete, run the resolved `test-unit-coverage` command. (If the iteration's targets spanned multiple batches of 10 agents, wait for every batch to finish before re-running coverage — coverage re-runs once per iteration, not once per batch.)
 
 Parse the output again and compare against the previous iteration:
 - Report which files improved
@@ -125,7 +128,7 @@ Then run the resolved `check` command to verify no type or lint errors were intr
 
 **If all files are at 100%** — report success to the user with final coverage numbers. Done.
 
-**If gaps remain and iteration count < 5 and total agents dispatched < 100** — go back to Step 2. Re-target folders that still have gaps, even if they were processed in a prior iteration (the agent may have missed branches on the first pass). However, skip folders where the prior agent's report documented gaps as genuinely unreachable code (e.g., platform-specific branches, environment guards) — re-dispatching to those wastes an agent slot.
+**If gaps remain and iteration count < 5 and total agents dispatched < 100** — increment `iteration` by 1, then go back to Step 2. Re-target folders that still have gaps, even if they were processed in a prior iteration (the agent may have missed branches on the first pass). However, skip folders where the prior agent's report documented gaps as genuinely unreachable code (e.g., platform-specific branches, environment guards) — re-dispatching to those wastes an agent slot.
 
 **If gaps remain but iteration count >= 5 or total agents dispatched >= 100** — stop and report using the format in the Reporting section below.
 

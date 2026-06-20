@@ -1,98 +1,55 @@
----
-name: fdrop:task:refactor-plan
-description: Analyzes code and creates refactor suggestions. Use when planning a refactor or reviewing code for improvement opportunities. Input can be a folder path OR a request to review currently changed files (uncommitted changes from git).
-allowed-tools: Read, Glob, Grep, Bash
----
+# Refactor Plan — Analysis Method, Severity, and Output Format
 
-# Refactor Plan
+This document defines how to analyze the target code and how to present the result. The calling SKILL.md handles input modes and Required Reading; this file owns the deliverable.
 
-## Input
+## Analysis Method
+
+For each target file:
+
+1. Read the file in full — never analyze from a summary or a diff hunk alone.
+2. Compare what you observe against every loaded standards doc (architecture, style guide, documentation, React thresholds).
+3. Record each deviation as a candidate suggestion with: the file and line(s), the rule it violates (cite the doc), what is wrong, and the concrete change to make.
+4. Analyze each file directly — do not delegate analysis to sub-agents or summarizers.
+
+Only report deviations from a loaded standard or a clear correctness/maintainability defect. Do not invent stylistic preferences that no loaded doc supports.
+
+## Empty Input
+
+If no target files are found — an empty/non-existent folder in Mode 1, or a clean working tree (no diff) in Mode 2 — do not fabricate suggestions. Report `No files to analyze.` and stop.
+
+## Severity Classification
+
+| Severity | Meaning |
+| --- | --- |
+| **Critical** | Correctness bug, data loss, or security issue introduced or present in the code. |
+| **Major** | Clear violation of an architecture or structure rule (wrong file placement, broken module boundary, banned `any`/`as`, missing barrel export) or a size threshold breach requiring extraction. |
+| **Minor** | Style, naming, casing, doc-comment, or import-ordering deviation that does not affect behavior. |
+
+## Output Format
+
+Produce a single Markdown report with this structure:
 
 ```
-/fdrop:task:refactor-plan <folder-path>
-/fdrop:task:refactor-plan --changed
+## Refactor Plan: <target>
+
+| # | Severity | File:Line | Issue | Suggested Change | Rule |
+|---|----------|-----------|-------|------------------|------|
+| 1 | Major    | src/foo.ts:42 | `as` assertion bypasses narrowing | Replace with a type guard | typescript/type-assertions.md |
+| 2 | Minor    | src/foo.ts:8  | camelCase file name | Rename to kebab-case | conventions/file-naming.md |
+
+### Verdict: <one of the verdict values below>
+
+<one-paragraph rationale referencing the highest-severity findings>
 ```
 
-### Overrides (optional)
+Order rows by severity (Critical → Major → Minor), then by file. Every row must cite the specific rule doc in the `Rule` column. If there are no findings, output the heading, `No refactor suggestions — code complies with all loaded standards.`, and the `Ship as-is` verdict.
 
-The input may include a `---` fenced block with override keys:
+## Verdict
 
-| Key | Default | Purpose |
-| --- | --- | --- |
-| `code-standards` | (use Required Reading below) | Skill name or file path to load instead of the hardcoded Required Reading docs |
-| `extra-context` | (none) | Additional skills/docs to load for context |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
+Choose exactly one based on the highest-severity finding:
 
-**If `code-standards` is provided:** Load it via the Skill tool (if it starts with `/`) or the Read tool (if it's a file path), and skip the "Required Reading" section below — the override provides the rules. Still read [refactor-plan.md](./refactor-plan.md) for output format and detection patterns
-
-**If `extra-context` is provided:** Load each path via the Skill tool (for skills) or Read tool (for `.md` files).
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides. Inline `---` blocks take precedence over config file values for any key specified in both. If neither is present, use the Required Reading section as normal.
-
-You will receive one of two input modes:
-
-### Mode 1: Folder Path
-
-You receive a folder path to analyze. List all files in the target directory (not just the ones mentioned), read each relevant file, and base your analysis on what you directly observe.
-
-### Mode 2: Changed Files
-
-The user asks you to review currently changed files (e.g., "review the changed files", "review the diff", "review uncommitted changes"). In this mode:
-
-1. Run `git diff --name-only` and `git diff --cached --name-only` to identify all changed files
-2. Filter out test files and auto-generated files
-3. Read each changed file in full and analyze it
-
-### Both Modes
-
-**CRITICAL:** Your analysis MUST comply with all rules in the below documentation. These are requirements, not guidelines.
-
-## Required Reading
-
-Before analyzing code, read these documents:
-
-### Architecture
-
-- [folder-structure.md](../../fdrop:code:architecture/references/folder-structure.md) - Folder organization
-- [architecture-decisions.md](../../fdrop:code:architecture/references/architecture-decisions.md) - Architectural patterns
-
-### Style Guide
-
-- [conventions/formatting.md](../../fdrop:code:style-guide/references/conventions/formatting.md) - Language, formatter, and linter baseline
-- [conventions/casing.md](../../fdrop:code:style-guide/references/conventions/casing.md) - Identifier casing
-- [conventions/file-naming.md](../../fdrop:code:style-guide/references/conventions/file-naming.md) - File-name casing and resolution order
-- [conventions/variable-declaration.md](../../fdrop:code:style-guide/references/conventions/variable-declaration.md) - Variable naming and inline-vs-hoisted scalars
-- [conventions/naming.md](../../fdrop:code:style-guide/references/conventions/naming.md) - Naming consistency and naming for reuse
-- [patterns/functions.md](../../fdrop:code:style-guide/references/patterns/functions.md) - Function patterns
-- [patterns/classes.md](../../fdrop:code:style-guide/references/patterns/classes.md) - Class patterns
-- [patterns/named-constants.md](../../fdrop:code:style-guide/references/patterns/named-constants.md) - Named constants (unions + `const` objects)
-- [typescript/return-types.md](../../fdrop:code:style-guide/references/typescript/return-types.md) - Explicit return types on exports
-- [typescript/import-type.md](../../fdrop:code:style-guide/references/typescript/import-type.md) - `import type` for type-only imports
-- [typescript/avoid-any.md](../../fdrop:code:style-guide/references/typescript/avoid-any.md) - Avoid `any`; prefer `unknown`/narrowing
-- [typescript/type-assertions.md](../../fdrop:code:style-guide/references/typescript/type-assertions.md) - Avoid `as`; prefer narrowing
-- [structure/one-export-per-file.md](../../fdrop:code:style-guide/references/structure/one-export-per-file.md) - One exported item per file
-- [structure/import-paths.md](../../fdrop:code:style-guide/references/structure/import-paths.md) - Path-alias import strategy
-- [structure/module-api.md](../../fdrop:code:style-guide/references/structure/module-api.md) - Module boundaries, exports, and barrels
-- [structure/type-placement.md](../../fdrop:code:style-guide/references/structure/type-placement.md) - Where types and interfaces live
-- [structure/constant-placement.md](../../fdrop:code:style-guide/references/structure/constant-placement.md) - Where constants live
-
-### Documentation
-
-- [ts-docs.md](../../fdrop:code:documentation/references/ts-docs.md) - TSDoc/JSDoc style guide for TypeScript
-
-### React
-
-- [react/patterns-components.md](./react/patterns-components.md) - React component and hook size thresholds
-
-### Refactor Plan
-
-- [refactor-plan.md](./refactor-plan.md) - Instructions for generating the refactor plan
-
-## Instructions
-
-1. If `code-standards` override was provided, load it and skip step 2. Otherwise proceed to step 2.
-2. Read all documents listed in Required Reading above.
-3. If `extra-context` paths were provided, load each one.
-4. Identify target files using the appropriate input mode (folder listing or git diff).
-5. Analyze each file directly — do not delegate analysis to sub-agents or summarizers.
-6. Produce refactor suggestions following the output format, severity classification, and verdict rules specified in [refactor-plan.md](./refactor-plan.md).
+| Verdict | When |
+| --- | --- |
+| **Ship as-is** | No findings, or only Minor findings the author may safely defer. |
+| **Refactor recommended** | One or more Major findings; the code works but violates standards. |
+| **Block — fix required** | Any Critical finding. |
