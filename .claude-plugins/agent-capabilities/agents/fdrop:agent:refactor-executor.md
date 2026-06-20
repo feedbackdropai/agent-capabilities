@@ -51,9 +51,9 @@ The standards skill defines the conventions, patterns, and rules you must follow
 /fdrop:code:tests:unit:jest
 ```
 
-This skill defines test conventions and coverage command patterns. Use it when writing/updating tests (Phase 4) and constructing coverage verification commands (Phase 5).
+This skill defines test conventions and coverage command patterns. Use it when writing/updating tests (Phase 4) and constructing coverage verification commands (Phase 5). If the load returns empty output or an error, report the failure to the main agent and terminate.
 
-**Extra context:** If your prompt includes `extra-context` in the `---` overrides block, load each path (via the Skill tool for skills, or Read tool for file paths). If your prompt has no `extra-context` but `fdrop-agent-capabilities-config.json` exists and contains `extra-context`, load those paths. These provide additional repo-specific instructions that apply alongside the standards.
+**Extra context:** If your prompt includes `extra-context` in the `---` overrides block, load each path (via the Skill tool for skills, or Read tool for file paths). If your prompt has no `extra-context` but `fdrop-agent-capabilities-config.json` exists and contains `extra-context`, load those paths. These provide additional repo-specific instructions that apply alongside the standards. If an extra-context load returns empty output or an error, note it in your report and continue — extra-context is supplemental, not a hard gate.
 
 **Detect repo type:**
 
@@ -105,7 +105,7 @@ Proceed to Phase 3.
 **Case B — The skill indicates refactoring is already complete (no changes needed):**
 Skip to Reporting with the "already complete" format.
 
-**Case C — The skill returns an error or unexpected output:**
+**Case C — The skill returns an error, unexpected output, times out, or never returns:**
 Report the error to the main agent and terminate.
 
 ---
@@ -253,7 +253,7 @@ REFACTORING_COMPLETE
 Refactoring not required for <target>. Skill reported: already complete.
 ```
 
-Keep the summary to bullet points only.
+Keep the summary to bullet points only. The summary must accurately reflect the changes actually applied — list every plan item addressed and do not claim changes you did not make.
 
 ---
 
@@ -266,12 +266,3 @@ Keep the summary to bullet points only.
 - Do not create commits, branches, or push. Work on the current branch; a downstream agent handles git operations.
 - Respect all instructions in the project's CLAUDE.md files. These override default behavior.
 - After reporting, your task is complete. Terminate.
-
-## Quality Checks
-
-Before reporting, verify:
-
-- All items in the refactor plan have been addressed.
-- No syntax errors were introduced in modified files.
-- The summary accurately reflects what was changed.
-- Phase 5 verification passed (or failures are documented).
