@@ -21,7 +21,7 @@ The input may include a `---` fenced block with override keys:
 
 | Key | Default | Purpose |
 |-----|---------|---------|
-| `code-standards` | `./fdrop:code:standards` | Skill name or file path loaded by refactor-executor for coding rules |
+| `code-standards` | `/fdrop:code:standards` | Skill name or file path loaded by refactor-executor for coding rules |
 | `unit-test-standards` | `/fdrop:code:tests:unit:jest` | Skill name or file path loaded by refactor-executor for test conventions |
 | `extra-context` | (none) | Additional skills/docs loaded by refactor-executor before coding |
 | `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
@@ -55,7 +55,7 @@ Before spawning the first executor, set up tracking and verify the codebase is g
 Determine the scope of work and how to verify it.
 
 - **Folder path input:** Use the provided folder path as the target.
-- **Changed files input:** Run `git diff --name-only` to get the list of changed files. Store this file list — you will pass it to the executor.
+- **Changed files input:** Run `git diff --name-only` to get the list of changed files. Store this file list — you will pass it to the executor. **If the list is empty,** report "No changed files to refactor" and stop before pre-flight and Step 1.
 
 **Detect repo type:**
 
@@ -66,6 +66,8 @@ Determine the scope of work and how to verify it.
 ### Script Resolution
 
 If `scripts` overrides are provided, use the full commands directly (replacing `{package}` with the actual package name for monorepo targets). If no overrides are provided, detect the package manager from the lockfile and construct commands automatically.
+
+For the **changed-files** input, derive the affected package(s) by mapping each changed file path to its `packages/<name>/` root (in a single-package repo, there is one package — the repo root). Run the resolved `check` and `test-unit` commands once per distinct affected package.
 
 Scripts used by this orchestrator:
 
@@ -129,8 +131,8 @@ When the subagent returns, evaluate its response:
 **Case A – A refactor summary is returned (changes were made):**
 Record the iteration number, extract the list of changed files from the executor's report, and merge them into your accumulated file list. There may be more refactoring to do. If the iteration count is below 10, go back to Step 1 and spawn a **new** `fdrop:agent:refactor-executor` subagent in a fresh context for the same folder. If the iteration count has reached 10, go to Step 3.
 
-**Case B – The response contains `REFACTORING_COMPLETE`:**
-Refactoring is done. Go to Step 3.
+**Case B – The response contains `REFACTORING_COMPLETE`, or the executor reports "no changes to review":**
+Refactoring is done (nothing left to change, or there was nothing to refactor). Treat this as a clean finish and go to Step 3 — do **not** route it to Case C or burn an error retry.
 
 **Case C – The executor returns an error or unexpected output:**
 Retry by spawning a **new** `fdrop:agent:refactor-executor` subagent, including the error output in the prompt so the executor can diagnose the issue. Include any overrides extracted from the original input:

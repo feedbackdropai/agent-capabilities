@@ -45,7 +45,7 @@ You are the orchestrator. You run in the main conversation (Elicitation and Gril
 | 2 | - (main loop) | **Elicitation** — extract the user's full knowledge of the task, converge to shared understanding |
 | 3 | - | Scope check, decide single plan vs. phases |
 | 4 | `fdrop:agent:plan-writer` | Draft the plan file(s) (retry gate) |
-| 5 | `/grill-me` (Skill) | **Grill** the drafted plan for edge cases, fold answers in continuously |
+| 5 | `/fdrop:tool:grill-me` (Skill) | **Grill** the drafted plan for edge cases, fold answers in continuously |
 | 6 | `fdrop:agent:plan-to-A` | Grade to A; surface any leftover design gaps to the user, fold in, re-spawn |
 | 7 | - | Final report & handoff |
 
@@ -57,7 +57,7 @@ The drafting step is deliberately a fresh-context subagent: if the plan-writer c
 
 ## Step 0: Parse Input
 
-1. Extract the feature description (read the rough-notes file if a path was given), flags, and overrides.
+1. Extract the feature description (read the rough-notes file if a path was given), flags, and overrides. If a rough-notes path was given but the file does not exist or is empty, stop and ask the user to confirm the path or provide the feature description inline before proceeding.
 2. Derive a kebab-case plan name from the feature (e.g., "wire up tag talk" → `wire-up-tag-talk`).
 3. Plan files live in `.claude/plans/`. Create the directory if it does not exist.
 
@@ -140,7 +140,7 @@ Do **NOT** add workflow instructions — the agent knows its process.
 
 With a drafted plan now on disk, grill it for everything Elicitation could not reach. Elicitation captured what the user *consciously knows*; the grill exists to surface what they *can't* — edge cases, missed states, unhandled failures, ambiguous behaviors — and harden the plan beyond the user's own ability.
 
-Invoke `/grill-me` via the Skill tool, pointed at the drafted plan file(s) from Step 4. Follow its approach: relentless, **one question at a time**, and explore the codebase instead of asking whenever a question is answerable there.
+Invoke `/fdrop:tool:grill-me` via the Skill tool, pointed at the drafted plan file(s) from Step 4. Follow its approach: relentless, **one question at a time**, and explore the codebase instead of asking whenever a question is answerable there.
 
 This step is the inverse of Elicitation: it is **unbounded** — it does not stop because a decision tree is exhausted, but only when the user calls it.
 
