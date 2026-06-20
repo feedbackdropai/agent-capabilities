@@ -1,12 +1,12 @@
 ---
 name: fdrop:orchestrator:implement-all
-description: Orchestrates sequential implementation of multiple plan files in a folder by dispatching fdrop:orchestrator:implement for each plan.
-allowed-tools: Read, Bash, Skill, Glob
+description: Orchestrates sequential implementation of multiple plan files in a folder by spawning the fdrop:agent:implement subagent for each plan.
+allowed-tools: Read, Bash, Agent, Glob
 ---
 
 # Implement-All Orchestrator
 
-You are an implementation orchestrator. Your job is to execute a folder of plan files sequentially by dispatching `fdrop:orchestrator:implement` for each plan, verifying success between each, and producing a consolidated report.
+You are an implementation orchestrator. Your job is to execute a folder of plan files sequentially by spawning the `fdrop:agent:implement` subagent for each plan, verifying success between each, and producing a consolidated report. Each phase runs in its own subagent so its build/test/refactor orchestration stays out of your context — you only receive the per-phase report.
 
 ## Input
 
@@ -23,10 +23,10 @@ plans/
   pr-updates-3.md
 ```
 
-Each phase is passed individually to `/fdrop:orchestrator:implement`:
+Each phase is passed individually to a `fdrop:agent:implement` subagent:
 
 ```
-/fdrop:orchestrator:implement <phase-file-path>
+<phase-file-path>
 ```
 
 ### Mode 2: Overview Plan + Phases
@@ -41,10 +41,10 @@ wireUpTagTalk/
   phase3-page-urls.md
 ```
 
-Each phase is passed to `/fdrop:orchestrator:implement` along with the overview plan as context:
+Each phase is passed to a `fdrop:agent:implement` subagent along with the overview plan as context:
 
 ```
-/fdrop:orchestrator:implement <overview-plan-path> <phase-file-path>
+<overview-plan-path> <phase-file-path>
 ```
 
 ### Detecting the Overview Plan
@@ -70,7 +70,7 @@ The input may include a `---` fenced block with override keys:
 
 If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides. Inline `---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply.
 
-Extract these values early and pass them to each `/fdrop:orchestrator:implement` invocation.
+Extract these values early and pass them to each `fdrop:agent:implement` spawn.
 
 ## Workflow
 
@@ -98,18 +98,20 @@ Initialize tracking:
 
 ### Step 1: Execute Phases Sequentially
 
-For each phase in the queue, invoke the Skill tool to load `/fdrop:orchestrator:implement`.
+For each phase in the queue, spawn the `fdrop:agent:implement` subagent (Agent tool, `subagent_type: "fdrop:agent:implement"`). Each spawn **must** be a new Agent tool call (fresh context). The subagent loads and runs `/fdrop:orchestrator:implement` internally and returns its report.
 
-**Mode 1** (phases only):
-
-```
-/fdrop:orchestrator:implement <phase-file-path>
-```
-
-**Mode 2** (overview + phases) — pass both paths so implement reads the overview for context:
+**Mode 1** (phases only) — prompt:
 
 ```
-/fdrop:orchestrator:implement <overview-plan-path> <phase-file-path>
+Implement this phase:
+<phase-file-path>
+```
+
+**Mode 2** (overview + phases) — pass both paths so the subagent reads the overview for context:
+
+```
+Implement this phase:
+<overview-plan-path> <phase-file-path>
 ```
 
 If overrides were extracted from the input, append them in both modes (only include keys that were present in the input):
@@ -129,17 +131,17 @@ scripts:
 
 If no overrides were provided, omit the fenced block.
 
-Wait for the skill to complete and evaluate its report.
+Wait for the subagent to return and evaluate its report.
 
 ### Step 2: Evaluate Result
 
-Parse the report from `fdrop:orchestrator:implement`. Determine the outcome:
+Parse the report returned by the `fdrop:agent:implement` subagent. Determine the outcome:
 
 **Case A — All steps passed (all ✅):**
 Record as **success**. Merge changed files into accumulated list. Proceed to next phase.
 
-**Case B — Implementation failed (Feature or Post-feature verify shows ❌):**
-Record as **failed**. **Stop immediately.** Do not attempt remaining phases — the codebase is in a broken state. Proceed to Step 3 (Report).
+**Case B — Implementation failed (Feature or Post-feature verify shows ❌, or the subagent returned the `## Implementation Failed` error format):**
+Record as **failed**. **Stop immediately.** Do not attempt remaining phases. A ❌ on Feature/Post-feature verify means the codebase is in a broken state; the `## Implementation Failed` error format means a precondition failed (e.g. the subagent could not determine the target package, a clean-slate gate failed, or an input path was invalid) — in both cases halt and surface the error. Proceed to Step 3 (Report).
 
 **Case C — Implementation succeeded but test/refactor steps failed (Feature ✅, but Tests or Refactor shows ❌):**
 Record as **partial**. Merge changed files into accumulated list. Proceed to next phase — the source code is likely sound.
@@ -183,7 +185,8 @@ Remaining phases not attempted: <list>
 - Execute phases **sequentially** in alphabetical order. Never run phases in parallel.
 - **Fail fast** on implementation failure (Case B). Test/refactor failures (Case C) do not stop execution.
 - The overview plan is **context only** — never execute it as a phase.
-- Do **NOT** implement features yourself — only orchestrate via `/fdrop:orchestrator:implement`.
+- Do **NOT** implement features yourself — only orchestrate by spawning `fdrop:agent:implement`.
+- Each `fdrop:agent:implement` spawn **must** be a new Agent tool call (fresh context).
 - Do not create commits, branches, or push.
 - Do not ask clarifying questions — proceed immediately with the workflow.
-- Pass overrides to every `/fdrop:orchestrator:implement` invocation consistently.
+- Pass overrides to every `fdrop:agent:implement` spawn consistently.

@@ -18,14 +18,13 @@ You are the orchestrator. You repeatedly spawn a grading subagent, evaluate its 
 
 ### Step 1: Grade the Skill
 
-Spawn a subagent with this prompt:
+Spawn the `fdrop:agent:grade-skill` agent as a subagent (Agent tool, `subagent_type: "fdrop:agent:grade-skill"`) with this prompt:
 
 ```
-Load the /fdrop:tool:grade-skill skill via the Skill tool, then grade the following file:
-<file-path>
-
-Read the file and apply the grading rules. Return the full grade report.
+Grade this file: <file-path>
 ```
+
+The agent loads `/fdrop:tool:grade-skill`, applies the grading rules, and returns the full grade report with the `Grade:` line first.
 
 ### Step 2: Evaluate the Grade
 
@@ -34,6 +33,8 @@ Parse the subagent's response for the letter grade.
 **If the grade is A (or A+):** Go to Step 4.
 
 **If the grade is below A:** Extract the specific improvement suggestions from the response and proceed to Step 3.
+
+**If no letter grade can be parsed** (the subagent errored, returned no grade, or returned unreadable output): re-spawn the grading subagent once with the same prompt. If the second attempt also yields no parseable grade, stop and report the failure in Step 4, including the raw subagent output — do not loop further or guess a grade.
 
 ### Step 3: Apply Fixes
 

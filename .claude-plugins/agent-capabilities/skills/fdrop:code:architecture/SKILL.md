@@ -8,30 +8,27 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 This project may be a single-package repo or a pnpm monorepo. In a monorepo, each package under `packages/` has its own architecture layered on these shared rules.
 
-**CRITICAL:** Every line of code you write MUST comply with all rules in the below documentation. These are requirements, not guidelines. Consistent style makes the codebase readable and maintainable.
+Follow the rules in the linked docs — they're requirements, not suggestions. Consistency is what keeps the codebase predictable to edit, for agents and humans alike.
 
-**Precedence:** Package-specific docs override framework docs, which override shared rules, where they explicitly diverge.
+**Precedence (within architecture docs):** Package-specific docs override framework docs, which override shared rules, where they explicitly diverge. This refines the overall [precedence in the standards skill](../fdrop:code:standards/SKILL.md#precedence).
 
 ## Required Reading
 
 ### Shared (always read)
 
-- [folder-structure.md](./docs/folder-structure.md) – Monorepo folder organization, `common/` pattern, domain folders
-- [architecture-decisions.md](./docs/architecture-decisions.md) – Shared architectural patterns
+- [folder-structure.md](./references/folder-structure.md) – Monorepo folder organization, `common/` pattern, domain folders
+- [architecture-decisions.md](./references/architecture-decisions.md) – Shared architectural patterns
 
 ### Framework (read when touching a package that uses that framework)
 
 Determine which package(s) you are working in from the file paths in your task. Check the package's dependencies (`package.json`) to identify which framework it uses, then read the matching docs.
 
 **React / Preact:**
-- [react/architecture-decisions.md](./docs/react/architecture-decisions.md) – Component structure, hooks, naming, JSX domain folders
+- [react/architecture-decisions.md](./references/react/architecture-decisions.md) – Component structure, hooks, naming, JSX domain folders
 
 **TanStack Start:**
-- [tanstack-start/architecture-decisions.md](./docs/tanstack-start/architecture-decisions.md) – Features/screens, serverFns, queries, code placement hierarchy
-
-**NestJS:**
-- [nestjs/architecture-decisions.md](./docs/nestjs/architecture-decisions.md) – Route modules, DTOs, guards, jobs, kebab-case naming
+- [tanstack-start/architecture-decisions.md](./references/tanstack-start/architecture-decisions.md) – Features/screens, serverFns, queries, code placement hierarchy
 
 ### Package-Specific (read when touching that package)
 
-For each affected package, check if a subdirectory exists under `docs/` matching that package name. If it does, read all docs in it. Packages without dedicated docs follow only the shared and framework docs.
+For each affected package, check if a subdirectory exists under `references/` matching that package name. If it does, read all docs in it. Packages without dedicated docs follow only the shared and framework docs.

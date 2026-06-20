@@ -12,4 +12,4 @@ When you write TSDoc/JSDoc, follow the style rules below. These are requirements
 
 Before writing any code, read these documents:
 
-- [ts-docs.md](./docs/ts-docs.md) – TSDoc/JSDoc style guide for TypeScript
+- [ts-docs.md](./references/ts-docs.md) – TSDoc/JSDoc style guide for TypeScript

@@ -37,7 +37,7 @@ If validation fails, report the error to the main agent and terminate immediatel
 
 Load the standards skills and any extra context provided by the orchestrator.
 
-**Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fws:code:standards`) loaded via the Skill tool, or a file path (e.g. `./docs/standards.md`) loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
+**Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fdrop:code:standards`) loaded via the Skill tool, or a file path (e.g. `./references/standards.md`) loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
 
 ```
 /fdrop:code:standards
@@ -174,7 +174,7 @@ Run the resolved `check`, `test-unit`, and `test-unit-coverage` commands on the 
 **Gates:**
 - Types check clean.
 - Tests pass.
-- Coverage at 100% on modified source files (skip this gate when `skip-tests: true` was specified — coverage verification requires Phase 4 to have run).
+- Coverage at 100% on modified source files (skip this gate when `skip-tests: true` was specified — coverage verification requires Phase 4 to have run). Coverage may be reached through module-boundary tests rather than per-file test files — the metric is per source file, regardless of which test file exercises it (see the unit-test-standards' Module Boundary Testing section).
 
 If files span multiple packages, run their verification in **parallel** using parallel tool calls. All packages must pass before proceeding.
 
