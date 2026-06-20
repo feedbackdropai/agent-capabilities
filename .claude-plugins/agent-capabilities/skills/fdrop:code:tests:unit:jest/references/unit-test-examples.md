@@ -1,17 +1,20 @@
 # Unit Test Examples
 
+Every example follows [Arrange-Act-Assert with setup factories](./unit-testing.md#test-structure--arrange-act-assert-with-setup-factories): arrangement lives in a named `setup()` factory; the act and assertion live in the `test`, each call assigned to a named `const`, with a blank line between the three blocks. Mock cleanup is handled by `clearMocks` / `restoreMocks` config (see [Mock Cleanup](./unit-testing.md#mock-cleanup)) — never by `beforeEach`.
+
 ## Unit Test File (for a Class)
 
+> **Behavior vs. internals:** this example asserts the `Person`'s resolved fields (`departmentId`, `personType`, etc.). That is still testing *behavior*, not internals — for a class whose job is to resolve and expose that state, those fields are the public output a consumer reads. The "test behavior, not internals" rule only bans reaching into things a consumer never touches (private helpers, caches, intermediate variables).
+
 ```typescript
-import { expect, describe, beforeEach, jest, test } from '@jest/globals';
+import { expect, describe, test, jest } from '@jest/globals';
 import { Person } from '@/models/person';
 import { Address } from '@/models/address';
-import { IPersonDetails } from '@/models/person/common/interfaces';
 import { PersonConfig } from '@/models/person-config';
+import type { IPersonDetails } from '@/models/person/common/interfaces';
 
 // Mocked Imports
 // -------------------------
-let mockPersonDetails: IPersonDetails | null = null;
 const mockGetPersonDetails = jest.fn<(params: { personId: string; locale: Locale }) => IPersonDetails | null>();
 
 jest.mock('@/models/person/common/utils/get-person-details', () => ({
@@ -19,132 +22,65 @@ jest.mock('@/models/person/common/utils/get-person-details', () => ({
 }));
 // -------------------------
 
+const setupPerson = ({ details = null }: { details?: IPersonDetails | null } = {}) => {
+	mockGetPersonDetails.mockReturnValue(details);
+
+	const address = new Address({
+		addressData: { street: '123 Main St', city: 'Springfield', zip: '12345' },
+	});
+	const personConfig = new PersonConfig({
+		isAnonymous: false,
+		currentLocale: {} as Locale,
+		defaultSettings: {},
+	});
+
+	return { address, personConfig };
+};
+
 describe('Person', () => {
-	let person: Person;
-	let isAnonymous: boolean;
-	let currentLocale: Locale;
-	let address: Address;
-	let addressData: AddressData;
-	let personConfig: PersonConfig;
-
-	beforeEach(() => {
-		mockGetPersonDetails.mockClear();
-		mockPersonDetails = null;
-		mockGetPersonDetails.mockReturnValue(mockPersonDetails);
-
-		addressData = {
-			street: '123 Main St',
-			city: 'Springfield',
-			zip: '12345',
+	test('sets employee details when the person is an employee', () => {
+		const employeeDetails: IPersonDetails = {
+			departmentId: '456',
+			managerId: '789',
+			personType: 'employee',
+			companyName: 'acme-corp.com',
+			companyPath: '/org/engineering/team-a',
+			companyUrl: 'https://acme-corp.com/org/engineering/team-a',
 		};
-		address = new Address({ addressData });
+		const { address, personConfig } = setupPerson({ details: employeeDetails });
 
-		isAnonymous = false;
-		currentLocale = {} as Locale;
-		personConfig = new PersonConfig({
-			isAnonymous,
-			currentLocale,
-			defaultSettings: {},
-		});
+		const person = new Person({ isAnonymous: false, address, personConfig });
 
-		person = new Person({ isAnonymous, address, personConfig });
+		expect(person).toEqual(expect.objectContaining(employeeDetails));
 	});
 
-	describe('when person details are found', () => {
-		describe('for an employee', () => {
-			beforeEach(() => {
-				mockPersonDetails = {
-					departmentId: '456',
-					managerId: '789',
-					personType: 'employee',
-					companyName: 'acme-corp.com',
-					companyPath: '/org/engineering/team-a',
-					companyUrl: 'https://acme-corp.com/org/engineering/team-a',
-				};
-				mockGetPersonDetails.mockReturnValue(mockPersonDetails);
+	test('sets contractor details when the person is a contractor', () => {
+		const contractorDetails: IPersonDetails = { contractorId: '123', personType: 'contractor' };
+		const { address, personConfig } = setupPerson({ details: contractorDetails });
 
-				person = new Person({
-					isAnonymous,
-					address,
-					personConfig,
-				});
-			});
+		const person = new Person({ isAnonymous: false, address, personConfig });
 
-			test('should set expected person details', () => {
-				expect(person).toStrictEqual(
-					expect.objectContaining({ ...mockPersonDetails }),
-				);
-			});
-		});
-
-		describe('for a contractor', () => {
-			beforeEach(() => {
-				mockPersonDetails = {
-					contractorId: '123',
-					personType: 'contractor',
-				};
-				mockGetPersonDetails.mockReturnValue(mockPersonDetails);
-
-				person = new Person({
-					isAnonymous,
-					address,
-					personConfig,
-				});
-			});
-
-			test('should set expected person details', () => {
-				expect(person).toStrictEqual(
-					expect.objectContaining({ ...mockPersonDetails }),
-				);
-			});
-		});
-
-		describe('for a vendor', () => {
-			beforeEach(() => {
-				mockPersonDetails = {
-					vendorId: '123',
-					accountId: '456',
-					personType: 'vendor',
-				};
-				mockGetPersonDetails.mockReturnValue(mockPersonDetails);
-
-				person = new Person({
-					isAnonymous,
-					address,
-					personConfig,
-				});
-			});
-
-			test('should set expected person details', () => {
-				expect(person).toStrictEqual(
-					expect.objectContaining({ ...mockPersonDetails }),
-				);
-			});
-		});
+		expect(person).toEqual(expect.objectContaining(contractorDetails));
 	});
 
-	describe('when no person details are found', () => {
-		beforeEach(() => {
-			mockPersonDetails = null;
-			mockGetPersonDetails.mockReturnValue(mockPersonDetails);
-			person = new Person({ isAnonymous, address, personConfig });
-		});
+	test('leaves detail properties unset when no details are found', () => {
+		const { address, personConfig } = setupPerson({ details: null });
 
-		test('should not have any person detail properties set', () => {
-			expect(person).toStrictEqual(
-				expect.objectContaining({
-					contractorId: undefined,
-					accountId: undefined,
-					vendorId: undefined,
-					personType: undefined,
-					departmentId: undefined,
-					managerId: undefined,
-					companyName: undefined,
-					companyPath: undefined,
-					companyUrl: undefined,
-				}),
-			);
-		});
+		const person = new Person({ isAnonymous: false, address, personConfig });
+
+		expect(person).toEqual(
+			expect.objectContaining({
+				contractorId: undefined,
+				accountId: undefined,
+				vendorId: undefined,
+				personType: undefined,
+				departmentId: undefined,
+				managerId: undefined,
+				companyName: undefined,
+				companyPath: undefined,
+				companyUrl: undefined,
+			}),
+		);
 	});
 });
 ```
@@ -154,20 +90,13 @@ describe('Person', () => {
 ## Unit Test File (for a Function)
 
 ```typescript
-import {
-	expect,
-	describe,
-	beforeEach,
-	jest,
-	test,
-} from '@jest/globals';
+import { expect, describe, test, jest } from '@jest/globals';
 import { UserProfile } from '@/models/user-profile';
 import { AppSettings } from '@/models/app-settings';
 import { getAvatarUrl } from '@/models/user-profile/common/utils/get-avatar-url';
 
 // Mocked Imports
 // -------------------------
-let mockAvatarFromProfile: string | null = null;
 const mockGetAvatarFromProfile = jest.fn<(params: { profile: UserProfile }) => string | null>();
 
 jest.mock('@/models/user-profile/common/utils/get-avatar-from-profile', () => ({
@@ -175,7 +104,6 @@ jest.mock('@/models/user-profile/common/utils/get-avatar-from-profile', () => ({
 		mockGetAvatarFromProfile(params),
 }));
 // -------------------------
-let mockAvatarFromGravatar: string | null = null;
 const mockGetAvatarFromGravatar = jest.fn<(params: { email: string }) => string | null>();
 
 jest.mock('@/models/user-profile/common/utils/get-avatar-from-gravatar', () => ({
@@ -184,78 +112,62 @@ jest.mock('@/models/user-profile/common/utils/get-avatar-from-gravatar', () => (
 }));
 // -------------------------
 
+const setupAvatar = ({
+	profile = null,
+	gravatar = null,
+	setting,
+}: {
+	profile?: string | null;
+	gravatar?: string | null;
+	setting?: 'hasCustomAvatar' | 'useGravatar';
+} = {}) => {
+	mockGetAvatarFromProfile.mockReturnValue(profile);
+	mockGetAvatarFromGravatar.mockReturnValue(gravatar);
+
+	const userProfile = new UserProfile({
+		profileData: { email: 'user@example.com', displayName: 'Test User' },
+	});
+	const appSettings = new AppSettings({
+		isGuest: false,
+		currentTheme: {} as Theme,
+		defaultPreferences: {},
+	});
+	if (setting) {
+		appSettings.set(setting, true);
+	}
+
+	return { userProfile, appSettings };
+};
+
 describe('getAvatarUrl', () => {
-	let isGuest: boolean;
-	let currentTheme: Theme;
-	let userProfile: UserProfile;
-	let profileData: ProfileData;
-	let appSettings: AppSettings;
-	let avatarUrl: string | null;
+	test('returns null when no avatar conditions are met', () => {
+		const { userProfile, appSettings } = setupAvatar();
 
-	beforeEach(() => {
-		mockGetAvatarFromProfile.mockClear();
-		mockGetAvatarFromGravatar.mockClear();
+		const avatarUrl = getAvatarUrl({ userProfile, appSettings });
 
-		avatarUrl = null;
-
-		profileData = { email: 'user@example.com', displayName: 'Test User' };
-		userProfile = new UserProfile({ profileData });
-
-		isGuest = false;
-		currentTheme = {} as Theme;
-		appSettings = new AppSettings({
-			isGuest,
-			currentTheme,
-			defaultPreferences: {},
-		});
-
-		mockAvatarFromGravatar = 'https://gravatar.com/avatar/abc123?size=200';
-		mockAvatarFromProfile = 'https://cdn.example.com/avatars/user-123.png';
-		mockGetAvatarFromProfile.mockReturnValue(mockAvatarFromProfile);
-		mockGetAvatarFromGravatar.mockReturnValue(mockAvatarFromGravatar);
+		expect(avatarUrl).toBeNull();
 	});
 
-	describe('when no avatar conditions are met', () => {
-		beforeEach(() => {
-			avatarUrl = getAvatarUrl({ userProfile, appSettings });
+	test('returns the profile avatar when the user has a custom avatar', () => {
+		const { userProfile, appSettings } = setupAvatar({
+			profile: 'https://cdn.example.com/avatars/user-123.png',
+			setting: 'hasCustomAvatar',
 		});
 
-		test('should return null', () => {
-			expect(avatarUrl).toBeNull();
-		});
+		const avatarUrl = getAvatarUrl({ userProfile, appSettings });
+
+		expect(avatarUrl).toBe('https://cdn.example.com/avatars/user-123.png');
 	});
 
-	describe('when user has uploaded a custom avatar', () => {
-		beforeEach(() => {
-			appSettings.set('hasCustomAvatar', true);
-			avatarUrl = getAvatarUrl({ userProfile, appSettings });
+	test('returns the gravatar avatar when gravatar is enabled', () => {
+		const { userProfile, appSettings } = setupAvatar({
+			gravatar: 'https://gravatar.com/avatar/abc123?size=200',
+			setting: 'useGravatar',
 		});
 
-		test('should return the avatar url from profile', () => {
-			expect(avatarUrl).toBe(mockAvatarFromProfile);
-		});
-	});
+		const avatarUrl = getAvatarUrl({ userProfile, appSettings });
 
-	describe('when gravatar is enabled', () => {
-		beforeEach(() => {
-			appSettings.set('useGravatar', true);
-			avatarUrl = getAvatarUrl({ userProfile, appSettings });
-		});
-
-		test('should return the avatar url from gravatar', () => {
-			expect(avatarUrl).toBe(mockAvatarFromGravatar);
-		});
-	});
-
-	describe('when using default avatar fallback', () => {
-		beforeEach(() => {
-			appSettings.set('useDefaultFallback', true);
-			avatarUrl = getAvatarUrl({ userProfile, appSettings });
-		});
-
-		test('should return the avatar url from gravatar', () => {
-			expect(avatarUrl).toBe(mockAvatarFromGravatar);
-		});
+		expect(avatarUrl).toBe('https://gravatar.com/avatar/abc123?size=200');
 	});
 });
 ```
@@ -265,13 +177,7 @@ describe('getAvatarUrl', () => {
 ## Unit Test File (Async Function)
 
 ```typescript
-import {
-	expect,
-	describe,
-	beforeEach,
-	jest,
-	test,
-} from '@jest/globals';
+import { expect, describe, test, jest } from '@jest/globals';
 import { getUserData } from '@/services/user/common/utils/get-user-data';
 
 // Mocked Imports
@@ -283,34 +189,30 @@ jest.mock('@/services/user/common/utils/fetch-user', () => ({
 }));
 // -------------------------
 
+const setupUserData = ({
+	user = null,
+	error = null,
+}: { user?: UserData | null; error?: Error | null } = {}) => {
+	if (error) {
+		mockFetchUser.mockRejectedValue(error);
+	} else {
+		mockFetchUser.mockResolvedValue(user as UserData);
+	}
+};
+
 describe('getUserData', () => {
-	let result: UserData;
+	test('returns the user data when the user exists', async () => {
+		setupUserData({ user: { id: '1', name: 'Test User' } });
 
-	beforeEach(() => {
-		mockFetchUser.mockClear();
+		const result = await getUserData({ userId: '1' });
+
+		expect(result).toStrictEqual({ id: '1', name: 'Test User' });
 	});
 
-	describe('when the user exists', () => {
-		beforeEach(async () => {
-			mockFetchUser.mockResolvedValue({ id: '1', name: 'Test User' });
-			result = await getUserData({ userId: '1' });
-		});
+	test('throws when the user does not exist', async () => {
+		setupUserData({ error: new Error('User not found') });
 
-		test('should return the user data', () => {
-			expect(result).toStrictEqual({ id: '1', name: 'Test User' });
-		});
-	});
-
-	describe('when the user does not exist', () => {
-		beforeEach(() => {
-			mockFetchUser.mockRejectedValue(new Error('User not found'));
-		});
-
-		test('should throw an error', async () => {
-			await expect(getUserData({ userId: '999' })).rejects.toThrow(
-				'User not found',
-			);
-		});
+		await expect(getUserData({ userId: '999' })).rejects.toThrow('User not found');
 	});
 });
 ```
@@ -320,14 +222,9 @@ describe('getUserData', () => {
 ## Unit Test File (Component)
 
 ```typescript
-import {
-	expect,
-	describe,
-	beforeEach,
-	jest,
-	test,
-} from '@jest/globals';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { expect, describe, test, jest } from '@jest/globals';
+import { render, screen } from '@testing-library/preact';
+import userEvent from '@testing-library/user-event';
 import { NotificationBanner } from './NotificationBanner';
 
 // Mocked Imports
@@ -345,55 +242,40 @@ jest.mock('@common/hooks/useDismissHandler', () => ({
 }));
 // -------------------------
 
+const setupNotificationBanner = ({ isVisible = true }: { isVisible?: boolean } = {}) => {
+	const onDismiss = jest.fn<() => void>();
+	mockUseAppStore.mockReturnValue(isVisible);
+	mockUseDismissHandler.mockReturnValue(onDismiss);
+	render(<NotificationBanner />);
+
+	return { onDismiss };
+};
+
 describe('NotificationBanner', () => {
-	let mockDismiss: jest.Mock;
+	test('does not render the banner when not visible', () => {
+		setupNotificationBanner({ isVisible: false });
 
-	beforeEach(() => {
-		mockUseAppStore.mockClear();
-		mockUseDismissHandler.mockClear();
+		const banner = screen.queryByRole('alert');
 
-		mockDismiss = jest.fn();
-		mockUseDismissHandler.mockReturnValue(mockDismiss);
+		expect(banner).not.toBeInTheDocument();
 	});
 
-	describe('when not visible', () => {
-		beforeEach(() => {
-			mockUseAppStore.mockReturnValue(false);
-			render(<NotificationBanner />);
-		});
+	test('renders the notification message when visible', () => {
+		setupNotificationBanner({ isVisible: true });
 
-		test('should not render the banner', () => {
-			expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-		});
+		const message = screen.getByText('Action required');
+
+		expect(message).toBeInTheDocument();
 	});
 
-	describe('when visible', () => {
-		beforeEach(() => {
-			mockUseAppStore.mockReturnValue(true);
-			render(<NotificationBanner />);
-		});
+	test('calls the dismiss handler when the dismiss button is clicked', async () => {
+		const { onDismiss } = setupNotificationBanner({ isVisible: true });
+		const user = userEvent.setup();
 
-		test('should render the notification message', () => {
-			expect(screen.getByText('Action required')).toBeInTheDocument();
-		});
+		const dismissButton = screen.getByRole('button', { name: /dismiss/i });
+		await user.click(dismissButton);
 
-		test('should render a dismiss button', () => {
-			expect(
-				screen.getByRole('button', { name: /dismiss/i }),
-			).toBeInTheDocument();
-		});
-
-		describe('when the dismiss button is clicked', () => {
-			beforeEach(() => {
-				fireEvent.click(
-					screen.getByRole('button', { name: /dismiss/i }),
-				);
-			});
-
-			test('should call the dismiss handler', () => {
-				expect(mockDismiss).toHaveBeenCalledTimes(1);
-			});
-		});
+		expect(onDismiss).toHaveBeenCalledTimes(1);
 	});
 });
 ```
@@ -413,9 +295,11 @@ describe('formatCurrency', () => {
 		{ amount: 0, locale: 'en-US', expected: '$0.00' },
 		{ amount: -50, locale: 'en-US', expected: '-$0.50' },
 	])(
-		'should format $amount in $locale as $expected',
+		'formats $amount in $locale as $expected',
 		({ amount, locale, expected }) => {
-			expect(formatCurrency({ amount, locale })).toBe(expected);
+			const formatted = formatCurrency({ amount, locale });
+
+			expect(formatted).toBe(expected);
 		},
 	);
 });

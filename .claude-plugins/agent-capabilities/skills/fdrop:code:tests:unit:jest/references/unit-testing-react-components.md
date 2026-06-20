@@ -1,5 +1,7 @@
 # Unit Testing Components
 
+Component tests follow the same [Arrange-Act-Assert with setup factories](./unit-testing.md#test-structure--arrange-act-assert-with-setup-factories) structure as every other test: arrange in a `setup()` factory (mocks + `render`), then act and assert in the `test`, with each call assigned to a named `const` and a blank line between the three blocks.
+
 ## Testing Library Import
 
 The import source depends on the package's framework:
@@ -9,7 +11,7 @@ The import source depends on the package's framework:
 | React | `@testing-library/react` |
 | Preact | `@testing-library/preact` |
 
-The API (`render`, `screen`, `fireEvent`) is identical across both libraries — only the import source differs. Check the package's `package.json` dependencies to determine which framework it uses.
+The API (`render`, `screen`, queries) is identical across both libraries — only the import source differs. Check the package's `package.json` dependencies to determine which framework it uses. Interactions use `userEvent`, not `fireEvent` — see [Testing User Interactions](#testing-user-interactions).
 
 ## Test File Naming
 
@@ -30,20 +32,24 @@ Framework route/page files — files whose sole purpose is wiring a route to a s
 
 ## The Render Pattern
 
-Import `render` and `screen` from the testing library. Call `render()` in `beforeEach`, not inside `test`. Query elements from `screen` — never destructure queries from `render()`.
+Render inside a `setup()` factory; query and assert in the `test`. For a component, `render()` *is* the act, but by convention it lives in the arrange factory rather than the test body — this is the one accepted exception to "the act lives in the `test`". Query elements from `screen` — never destructure queries from `render()`. Assign each query to a named `const` (no nested calls), with a blank line between arrange, act, and assert.
 
 ```typescript
-import { expect, describe, beforeEach, jest, test } from '@jest/globals';
+import { expect, describe, test } from '@jest/globals';
 import { render, screen } from '@testing-library/preact';
 import { StatusBanner } from './StatusBanner';
 
-describe('StatusBanner', () => {
-	beforeEach(() => {
-		render(<StatusBanner message="All systems operational" />);
-	});
+const setupStatusBanner = ({ message = 'All systems operational' }: { message?: string } = {}) => {
+	render(<StatusBanner message={message} />);
+};
 
-	test('should render the message', () => {
-		expect(screen.getByText('All systems operational')).toBeInTheDocument();
+describe('StatusBanner', () => {
+	test('renders the message', () => {
+		setupStatusBanner({ message: 'All systems operational' });
+
+		const message = screen.getByText('All systems operational');
+
+		expect(message).toBeInTheDocument();
 	});
 });
 ```
@@ -59,9 +65,13 @@ Choose queries in this order:
 
 Use `query*` variants (`queryByRole`, `queryByText`) when asserting an element is **not** rendered — they return `null` instead of throwing.
 
+Use `findBy*` / `waitFor` to assert elements that appear after an async update (e.g. a resolved promise following an interaction) — a synchronous `getBy*` throws before the DOM settles.
+
 ## Mocking Dependencies
 
 Before mocking any module, check that the "Do NOT Mock Simple Constants" rule in [unit-testing.md](./unit-testing.md#do-not-mock-simple-constants) does not apply. Only mock constant modules when they have import-time side effects or you need to vary the value per test.
+
+Set mock return values inside the `setup()` factory — not a `beforeEach`. With `clearMocks: true` in config, call tracking resets automatically before each test and each `setup()` re-sets return values fresh (see [Mock Cleanup](./unit-testing.md#mock-cleanup)).
 
 ### Custom Hooks
 
@@ -94,16 +104,13 @@ jest.mock('@/features/projects/hooks/useProjects', () => ({
 // -------------------------
 ```
 
-Set return values in `beforeEach`:
+Wire the return value in the setup factory:
 
 ```typescript
-beforeEach(() => {
-	mockUseBannerState.mockClear();
-	mockUseBannerState.mockReturnValue({
-		isVisible: true,
-		message: 'System operational',
-	});
-});
+const setupBanner = ({ isVisible = true, message = 'System operational' }: { isVisible?: boolean; message?: string } = {}) => {
+	mockUseBannerState.mockReturnValue({ isVisible, message });
+	render(<StatusBanner />);
+};
 ```
 
 ### Zustand Stores
@@ -121,24 +128,40 @@ jest.mock('@store/appStore', () => ({
 // -------------------------
 ```
 
-Return the value the selector would produce:
+Return the value the selector would produce, from the setup factory:
 
 ```typescript
-describe('when the feature is active', () => {
-	beforeEach(() => {
-		mockUseAppStore.mockReturnValue(true);
-		render(<FeaturePanel />);
-	});
+const setupFeaturePanel = ({ isActive = true }: { isActive?: boolean } = {}) => {
+	mockUseAppStore.mockReturnValue(isActive);
+	render(<FeaturePanel />);
+};
 
-	test('should render the panel', () => {
-		expect(screen.getByRole('region')).toBeInTheDocument();
+describe('FeaturePanel', () => {
+	test('renders the panel when the feature is active', () => {
+		setupFeaturePanel({ isActive: true });
+
+		const panel = screen.getByRole('region');
+
+		expect(panel).toBeInTheDocument();
 	});
 });
 ```
 
+`mockReturnValue` works only when the component calls `useStore` **once** — it returns the same value for every selector. When a component reads multiple slices (`useStore(selectA)`, `useStore(selectB)`), run the real selector against a mock state instead, so each call gets its own slice:
+
+```typescript
+const setupFeaturePanel = ({ isActive = true, label = 'Panel' }: { isActive?: boolean; label?: string } = {}) => {
+	const mockState = { isActive, label };
+	mockUseAppStore.mockImplementation((selector) => selector(mockState));
+	render(<FeaturePanel />);
+};
+```
+
 ### Child Components
 
-Mock child components to isolate the unit under test. Keep mocks minimal — render just enough to verify the parent passes correct props and renders children conditionally:
+Mock a child component **only if it is itself a boundary** — its own module, or a component imported from another feature. Render **real** internal children — those under this module's own `common/` (e.g., `./common/components/ActionButton`) — so they are covered through this boundary's tests, per the [Module Boundary Testing](./unit-testing.md#module-boundary-testing) rules. Mocking an internal child leaves it with neither boundary coverage nor a dedicated test file.
+
+When you do mock a boundary child, keep the mock minimal — render just enough to verify the parent passes correct props and renders children conditionally:
 
 ```typescript
 // Mocked Imports
@@ -155,50 +178,59 @@ jest.mock('./common/components/ActionButton', () => ({
 
 ## Testing Conditional Rendering
 
-When a component returns `null` under certain conditions, use `query*` to assert absence:
+When a component returns `null` under certain conditions, use `query*` to assert absence. Drive both states from the same factory via a parameter:
 
 ```typescript
-describe('when not active', () => {
-	beforeEach(() => {
-		mockUseAppStore.mockReturnValue(false);
-		render(<InstructionBar />);
+const setupInstructionBar = ({ isActive = false }: { isActive?: boolean } = {}) => {
+	mockUseAppStore.mockReturnValue(isActive);
+	render(<InstructionBar />);
+};
+
+describe('InstructionBar', () => {
+	test('does not render when not active', () => {
+		setupInstructionBar({ isActive: false });
+
+		const instruction = screen.queryByText('Select element');
+
+		expect(instruction).not.toBeInTheDocument();
 	});
 
-	test('should not render', () => {
-		expect(screen.queryByText('Select element')).not.toBeInTheDocument();
-	});
-});
+	test('renders the instruction text when active', () => {
+		setupInstructionBar({ isActive: true });
 
-describe('when active', () => {
-	beforeEach(() => {
-		mockUseAppStore.mockReturnValue(true);
-		render(<InstructionBar />);
-	});
+		const instruction = screen.getByText('Select element');
 
-	test('should render the instruction text', () => {
-		expect(screen.getByText('Select element')).toBeInTheDocument();
+		expect(instruction).toBeInTheDocument();
 	});
 });
 ```
 
 ## Testing User Interactions
 
-Use `fireEvent` for click, input, and keyboard events:
+Use **`@testing-library/user-event`** — it simulates real focus/pointer/keyboard sequences, unlike `fireEvent`'s single raw event. `userEvent` is async, so create the user in the test and `await` the interaction.
+
+The query that locates the interaction target groups with the act (the `userEvent` call), not with arrange — keep them in the same block, separated from the `setup()`/`userEvent.setup()` arrange block and the `expect` assertion by blank lines.
 
 ```typescript
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { render, screen } from '@testing-library/preact';
+import userEvent from '@testing-library/user-event';
 
-describe('when the dismiss button is clicked', () => {
-	let mockOnDismiss: jest.Mock;
+const setupBanner = () => {
+	const onDismiss = jest.fn<() => void>();
+	render(<Banner message="Notice" onDismiss={onDismiss} />);
 
-	beforeEach(() => {
-		mockOnDismiss = jest.fn();
-		render(<Banner message="Notice" onDismiss={mockOnDismiss} />);
-		fireEvent.click(screen.getByRole('button', { name: /dismiss/i }));
-	});
+	return { onDismiss };
+};
 
-	test('should call the dismiss handler', () => {
-		expect(mockOnDismiss).toHaveBeenCalledTimes(1);
+describe('Banner', () => {
+	test('calls the dismiss handler when the dismiss button is clicked', async () => {
+		const { onDismiss } = setupBanner();
+		const user = userEvent.setup();
+
+		const dismissButton = screen.getByRole('button', { name: /dismiss/i });
+		await user.click(dismissButton);
+
+		expect(onDismiss).toHaveBeenCalledTimes(1);
 	});
 });
 ```

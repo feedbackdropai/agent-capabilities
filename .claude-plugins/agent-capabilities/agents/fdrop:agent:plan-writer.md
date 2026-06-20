@@ -97,7 +97,7 @@ Assumptions made: <none, or list any input marked as assumption>
 PLAN_DRAFTED: ERROR
 
 Discrepancies:
-- <what is missing or wrong, e.g. "facts list references packages/api/src/tags/tag.service.ts — does not exist on disk">
+- <what is missing or wrong, e.g. "facts list references src/users/userService.ts — does not exist on disk">
 - ...
 
 No plan files were written.

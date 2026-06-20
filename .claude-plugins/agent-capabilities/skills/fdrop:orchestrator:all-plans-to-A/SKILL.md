@@ -1,20 +1,26 @@
 ---
 name: fdrop:orchestrator:all-plans-to-A
-description: Grades all plans in a folder to A by discovering plans, dispatching fdrop:task:plan-to-A sequentially, and looping until all reach A grade.
-allowed-tools: Read, Bash, Skill
+description: Grades all plans in a folder to A by discovering plans, spawning the fdrop:agent:plan-to-A subagent on each sequentially, surfacing any design-decision gaps to the user, and looping until all reach A grade.
+allowed-tools: Read, Bash, Agent, Edit
 ---
 
 # All Plans to A
 
-You are an orchestrator. Your job is to take a folder of plan files, identify plans, and run `/fdrop:task:plan-to-A` on each until all reach A grade.
+You are an orchestrator. Your job is to take a folder of plan files, identify plans, and drive each to A grade by spawning the `fdrop:agent:plan-to-A` subagent. The subagent is non-interactive: it applies mechanical fixes itself and returns any design-decision gaps it cannot resolve. When you run in the main conversation you surface those gaps to the user, fold the answers into the plan, and re-spawn — the same backstop loop `fdrop:orchestrator:plan` uses in its convergence step.
 
 ## Input
 
 A **folder path** containing plan files (`.md` files).
 
 ```
-/fdrop:orchestrator:all-plans-to-A <folder-path>
+/fdrop:orchestrator:all-plans-to-A <folder-path> [--non-interactive]
 ```
+
+## Flags (optional)
+
+| Flag | Effect |
+|------|--------|
+| `--non-interactive` | Never ask the user. Carry any unresolved design-decision gaps to the final report instead of surfacing them. Set this when this skill runs headless or is spawned where no user is present (e.g. nested under another orchestrator). |
 
 ## Overrides (optional)
 
@@ -29,7 +35,7 @@ The input may include a `---` fenced block with override keys:
 If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides.
 `---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply.
 
-Extract these values early and pass them to each `/fdrop:task:plan-to-A` invocation.
+Extract these values early and pass them to each `fdrop:agent:plan-to-A` spawn.
 
 ## Folder Structure
 
@@ -44,10 +50,10 @@ plans/
   pr-updates-3.md
 ```
 
-Each plan is passed individually:
+Each plan is graded individually by its own `fdrop:agent:plan-to-A` spawn:
 
 ```
-/fdrop:task:plan-to-A <plan-file-path>
+Plan: <plan-file-path>
 ```
 
 ### Mode 2: Overview Plan + Plans
@@ -62,10 +68,11 @@ wireUpTalk/
   phase3-page-urls.md
 ```
 
-Each plan is passed with the overview:
+Each plan is graded with the overview passed first as context:
 
 ```
-/fdrop:task:plan-to-A <overview-plan-path> <plan-file-path>
+Overview: <overview-plan-path>
+Plan: <plan-file-path>
 ```
 
 ### Detecting the Overview Plan
@@ -116,21 +123,24 @@ Plans: <N>
 
 ### Step 1: Grade Next Plan
 
-Take the next ungraded plan from the queue. Invoke the skill tool to load `/fdrop:task:plan-to-A`.
+Take the next ungraded plan from the queue. Spawn the `fdrop:agent:plan-to-A` subagent (Agent tool, `subagent_type: "fdrop:agent:plan-to-A"`). Each spawn **must** be a new Agent tool call (fresh context).
 
-**Mode 1:**
-
-```
-/fdrop:task:plan-to-A <plan-file-path>
-```
-
-**Mode 2:**
+**Mode 1** — prompt:
 
 ```
-/fdrop:task:plan-to-A <overview-plan-path> <plan-file-path>
+Grade this plan:
+Plan: <plan-file-path>
 ```
 
-If overrides were extracted from the input, append them:
+**Mode 2** — pass the overview first as context:
+
+```
+Grade this plan:
+Overview: <overview-plan-path>
+Plan: <plan-file-path>
+```
+
+If overrides were extracted from the input, append them to the prompt:
 
 ```
 ---
@@ -143,20 +153,23 @@ extra-context:
 
 If no overrides were provided, omit the fenced block.
 
-Wait for completion. The skill handles the full grade-fix-regrade loop internally (up to 5 iterations) and may pause to ask the user design questions.
+The subagent runs the full grade-fix-regrade loop internally (up to 5 iterations), non-interactively: it applies mechanical fixes and returns its `Final grade:` line plus any design-decision gaps under "Unresolved — needs upstream decision."
 
-### Step 2: Record Result
+### Step 2: Resolve, Re-spawn, Record
 
-Parse the final report from `/fdrop:task:plan-to-A`. Extract:
+Parse the subagent's report: the `Final grade:` line and any "Unresolved — needs upstream decision" section. Then branch:
 
-- Final grade
-- Number of iterations used
-- Whether it reached A
+- **`Final grade: A` and no unresolved gaps** → record and move on.
+- **Below A with no unresolved design gaps** (only mechanical gaps the subagent could not auto-fix within its caps) → record the grade and remaining gaps; move on. Do not loop further on this plan.
+- **Unresolved design-decision gaps returned** → resolve them, then re-spawn (Step 1) for this same plan:
+  - **If `--non-interactive` was passed** (no user present): do **not** ask. Record the plan as not-yet-A with its unresolved gaps and move on.
+  - **Otherwise:** batch the gaps into a single message (recommended answer first, up to 4 per turn). Ask via normal text output; the user responds in the next turn. For each answer, **fold the resolution into the plan file via Edit** and append a row to the plan's **Decision Log** with Source = `Converge` (question, options, choice, one-line rationale). For a cross-cutting decision on a Mode 2 plan, also update the overview. Then re-spawn `fdrop:agent:plan-to-A` for the plan.
+  - **Convergence cap:** at most **3** ask-and-re-spawn rounds per plan. If gaps persist after 3 rounds, stop asking, record the remaining gaps, and move on.
 
-Record in the results log. Print a progress update:
+Record the outcome in the results log. Print a progress update:
 
 ```
-Plan <N>/<total> complete: <plan-name> → <grade> (<iterations> iterations)
+Plan <N>/<total> complete: <plan-name> → <grade> (<iterations> iterations, <rounds> ask rounds)
 Remaining: <M> plans
 ```
 
@@ -188,13 +201,18 @@ Remaining: <M> plans
 [If any did not reach A:]
 ## Did Not Reach A
 - <plan-name>: <grade> — <remaining gaps summary>
+
+[If any design-decision gaps were left unresolved (--non-interactive, or convergence cap hit):]
+## Unresolved — needs decision
+- <plan-name>: <gap> — <what must be decided>
 ```
 
 ## Rules
 
 - Execute plans **sequentially** in alphabetical order. Never run plans in parallel.
 - The overview plan is **context only** — never grade it.
-- Do **NOT** grade plans yourself — only orchestrate via `/fdrop:task:plan-to-A`.
+- Do **NOT** grade plans yourself — only orchestrate by spawning `fdrop:agent:plan-to-A`. Resolving design-decision gaps (asking the user, folding answers into the plan) is your responsibility.
+- Each `fdrop:agent:plan-to-A` spawn **must** be a new Agent tool call (fresh context).
 - Do not create commits, branches, or push.
-- Pass overrides to every `/fdrop:task:plan-to-A` invocation consistently.
-- Each plan gets the full `/fdrop:task:plan-to-A` treatment (up to 5 internal iterations with user interaction for design decisions).
+- Pass overrides to every `fdrop:agent:plan-to-A` spawn consistently.
+- Only ask the user about genuine design decisions the subagent surfaced as unresolved — never about gaps it can fix mechanically. Under `--non-interactive`, never ask; carry unresolved gaps to the report.

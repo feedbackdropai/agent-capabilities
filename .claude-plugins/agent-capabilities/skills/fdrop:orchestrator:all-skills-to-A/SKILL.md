@@ -30,7 +30,7 @@ Glob for all skill and agent files under the repo root:
 
 Build a deduplicated list of file paths (relative to repo root).
 
-**Exclude these from the list** (they are the grading toolchain itself — modifying them mid-run is unsafe):
+**Exclude these from the list** (they are the grading toolchain itself — modifying them mid-run is unsafe). Match exclusions on the skill/agent `name:` field (equivalently, the containing directory name), not on a substring of the path:
 
 - `fdrop:orchestrator:all-skills-to-A` (this orchestrator)
 - `fdrop:agent:skill-to-A` (the grading agent)
@@ -41,7 +41,7 @@ Report the full target list before proceeding.
 
 ## Step 2: Dispatch a Batch
 
-Take the next **up to 5** un-graded targets from the list. Spawn one `fdrop:agent:skill-to-A` subagent per target (using the Agent tool with `subagent_type: "fdrop:agent:skill-to-A"` and `mode: "bypassPermissions"`), all in a **single message** so they run in parallel.
+Take the next **up to 5** un-graded targets from the list. Spawn one `fdrop:agent:skill-to-A` subagent per target (using the Agent tool with `subagent_type: "fdrop:agent:skill-to-A"`), all in a **single message** so they run in parallel.
 
 Prompt for each subagent:
 
@@ -58,6 +58,8 @@ When the batch completes, parse each subagent's response. The agent reports with
 - Target name
 - Final grade (A, A-, B+, etc.)
 - Number of iterations used
+
+**If a subagent's response lacks a parseable `Final grade:` (or iteration count)**, record the grade as `unknown` and treat the target as below-A for re-dispatch purposes (subject to the 2-dispatch cap in Step 4).
 
 Add results to the running tracker. Print a progress update after each batch:
 

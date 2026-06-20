@@ -81,7 +81,7 @@ Verify the resolved `package.json` contains the expected script names. If script
 **Include** all `*.tsx` files — both component files that render JSX and files that export hooks, context providers, or utility functions.
 
 **Check for reusable mocks and fixtures** before writing any tests:
-1. Check `test/mocks/` in the package root for global shared mocks (e.g., `mockPrismaService`, `mockLogger`).
+1. Check `test/mocks/` in the package root for global shared mocks (e.g., `mockDatabaseService`, `mockLogger`).
 2. Check `test/fixtures/` in the package root for test data factories and shared test data.
 3. Check co-located `__mocks__/` folders near the source files for module-specific mocks.
 Reuse existing mocks and fixtures rather than recreating them.

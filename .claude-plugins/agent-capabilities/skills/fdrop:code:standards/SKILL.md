@@ -1,6 +1,7 @@
 ---
 name: fdrop:code:standards
 description: Shared conventions for building new features. Use when implementing a feature that spans multiple packages or has no package-specific skill.
+allowed-tools: Read
 ---
 
 # Code Standards
@@ -12,7 +13,7 @@ Follow the rules in the linked docs — they're requirements, not suggestions. C
 Use this skill as the entry point when:
 - Implementing a feature that spans multiple packages.
 - Working in a package that has no dedicated package-specific skill.
-- Unsure which standards apply — this skill loads the correct child skills for you.
+- Unsure which standards apply — this skill tells you which child skills to load.
 
 ## Precedence
 

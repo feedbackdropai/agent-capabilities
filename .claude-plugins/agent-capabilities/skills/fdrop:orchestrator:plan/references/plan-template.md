@@ -1,10 +1,10 @@
 # Plan Template
 
-Templates for plans consumed by `/fdrop:orchestrator:implement` and graded by `/fdrop:tool:grade-plan`. Three variants: **Single Plan** (standalone feature), **Overview Plan** (multi-phase context), and **Phase Plan** (one implementation scope under an overview).
+Templates for plans consumed by `/fdrop:orchestrator:implement` and graded by `/fdrop:tool:lint-plan` (structure) and `/fdrop:tool:check-plan-gaps` (decisions). Three variants: **Single Plan** (standalone feature), **Overview Plan** (multi-phase context), and **Phase Plan** (one implementation scope under an overview).
 
 ## Rules (all variants)
 
-These mirror the grade-plan rubric — a plan violating them will not reach A:
+These mirror the lint-plan and check-plan-gaps rubrics — a plan violating them will not reach A:
 
 - **No placeholders.** No `???`, `TBD`, or unresolved `{tokens}`. Every open question must be resolved before the plan is written.
 - **Every referenced path verified.** Files listed under Files to Modify and Patterns to Mirror must exist on disk at write time. Files to Create must not.
@@ -25,13 +25,18 @@ These mirror the grade-plan rubric — a plan violating them will not reach A:
 <1–2 paragraphs: what this feature does, why it is needed, and the relevant
 current state of the codebase.>
 
-## Design Decisions
+## Decision Log
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| <decision> | <chosen approach> | <one line> |
+Every meaningful decision and the road not taken, tagged with the phase that
+surfaced it. Log a row only when an answer establishes or changes a decision or
+an edge-case handling — skip pure confirmations.
 
-<!-- If a decision was assumed rather than confirmed by the user, append
+| # | Source | Decision / Question | Options Considered | Choice | Rationale |
+|---|--------|---------------------|--------------------|--------|-----------|
+| 1 | Elicitation | <decision> | <A / B> | <chosen> | <one line> |
+
+<!-- Source is one of: Elicitation (Step 2), Grill (Step 5), Grade (Step 6).
+If a decision was assumed rather than confirmed by the user, append
 "(assumption)" to the Choice cell. -->
 
 ## Prerequisites
@@ -97,11 +102,17 @@ The overview carries context shared by all phases. It is **not implemented direc
 
 <What this feature does, why, and the relevant current state.>
 
-## Design Decisions
+## Decision Log
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| <decision> | <chosen approach> | <one line> |
+Cross-cutting decisions shared by all phases (phase-specific decisions live in
+each phase file). Log a row only when an answer establishes or changes a
+decision or an edge-case handling — skip pure confirmations.
+
+| # | Source | Decision / Question | Options Considered | Choice | Rationale |
+|---|--------|---------------------|--------------------|--------|-----------|
+| 1 | Elicitation | <decision> | <A / B> | <chosen> | <one line> |
+
+<!-- Source is one of: Elicitation (Step 2), Grill (Step 5), Grade (Step 6). -->
 
 ## Architecture
 
@@ -132,5 +143,5 @@ Identical to the Single Plan with these adjustments:
 
 - Title: `# <Feature Name> — Phase <N>: <Phase Name>`
 - **Prerequisites** states the prior phase's end state: "Phase <N-1> complete: <files/exports that now exist>." Phase 1 states the pre-feature codebase state.
-- **Design Decisions** may be omitted if fully covered by the overview — reference it: "See overview."
+- **Decision Log** may be omitted if fully covered by the overview — reference it: "See overview." Phase-specific decisions (including Grill rows raised against this phase) still go in this section.
 - **What Next Plan Expects** is mandatory and chains: it must list exactly what the next phase's Prerequisites will claim. The final phase states "None — final phase."

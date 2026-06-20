@@ -126,5 +126,5 @@ When code is needed by 2+ packages, it belongs in a shared package (e.g., `packa
 ```
 packages/shared/src/permissions/utils/hasPermission.ts      ← pure function
 packages/frontend/src/common/permissions/useHasPermission.ts ← React hook wrapping it
-packages/api/src/app/routes/auth/guards/                     ← NestJS guard using it
+packages/api/src/auth/guards/                                ← NestJS guard using it
 ```

@@ -122,10 +122,10 @@ const browserLabel = buildVersionedLabel({
 
 ```typescript
 // ❌ BAD: Unnecessary alias file
-export type FilterOptions = FeedbackFilterState;
+export type FilterOptions = TableFilterState;
 
 // ✅ GOOD: Use the original type directly
-import type { FeedbackFilterState } from './FeedbackFilterState';
+import type { TableFilterState } from './TableFilterState';
 ```
 
 If semantic distinction is important, add a comment at the usage site instead of creating indirection.

@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 **Scope:** All packages with Jest configs.
 
-**Coverage target:** Every new or modified source file must reach 100% line and branch coverage. Coverage is measured per source file, but tests live at **module boundaries** — internals are covered through their module's public API, not by dedicated test files. See the Module Boundary Testing section of [unit-testing.md](./references/unit-testing.md#module-boundary-testing).
+**Coverage target:** Every new or modified source file must reach 100% line, branch, and function coverage. Coverage is measured per source file, but tests live at **module boundaries** — internals are covered through their module's public API, not by dedicated test files. See the Module Boundary Testing section of [unit-testing.md](./references/unit-testing.md#module-boundary-testing).
 
 Follow the rules in the linked docs — they're requirements, not suggestions. Consistency is what keeps the codebase predictable to edit, for agents and humans alike.
 

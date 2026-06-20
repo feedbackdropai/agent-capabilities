@@ -25,13 +25,13 @@ Unit tests are **co-located** with their source files. Place the test file in th
 For instance, the below file:
 
 ```
-src/app/routes/auth/auth.service.ts
+src/auth/AuthService.ts
 ```
 
 Will have a unit test file located at:
 
 ```
-src/app/routes/auth/auth.service.unit.test.ts
+src/auth/AuthService.unit.test.ts
 ```
 
 ### Benefits of Co-location
@@ -44,13 +44,13 @@ src/app/routes/auth/auth.service.unit.test.ts
 ### Folder Structure Example
 
 ```
-src/app/routes/auth/
-├── auth.service.ts
-├── auth.service.unit.test.ts
-├── auth.resolver.ts
-├── auth.resolver.unit.test.ts
+src/auth/
+├── AuthService.ts
+├── AuthService.unit.test.ts
+├── TokenStore.ts
+├── TokenStore.unit.test.ts
 └── __mocks__/
-    └── auth.service.ts          # Mock for auth.service used by other tests
+    └── AuthService.ts          # Mock for AuthService used by other tests
 ```
 
 ## Files That Must NOT Have Dedicated Tests
@@ -76,25 +76,25 @@ If a constant file *does* contain logic (e.g., reads an env var and falls back t
 import {
 	expect,
 	describe,
-	beforeEach,
-	jest,
 	test,
+	jest,
 } from '@jest/globals';
 ```
 
-Import `afterEach` or `afterAll` only when cleanup is actually needed (e.g., restoring env vars, clearing timers). Most tests do not need teardown.
+Import `beforeEach`, `afterEach`, or `afterAll` only when actually needed. With setup factories (below) and `clearMocks` / `restoreMocks` config (see [Mock Cleanup](#mock-cleanup)), most tests need no hooks at all.
+
+Import `jest` only when the file actually uses it (`jest.fn`, `jest.mock`, or `jest.spyOn`). A file with no mocks — e.g. a pure `test.each` over a function — omits it to avoid an unused import that fails `noUnusedLocals` / lint.
 
 2. The first `describe` statement will always match the name of the class/function being tested.
 
-**src/app/routes/auth/auth.service.unit.test.ts**
+**src/auth/AuthService.unit.test.ts**
 
 ```typescript
 import {
 	expect,
 	describe,
-	beforeEach,
-	jest,
 	test,
+	jest,
 } from '@jest/globals';
 
 describe('AuthService', () => {
@@ -102,65 +102,75 @@ describe('AuthService', () => {
 });
 ```
 
+The template imports `jest` for completeness — drop it if the file ends up with no `jest.fn` / `jest.mock` / `jest.spyOn`, per the rule above.
+
 ## Describe Block Naming
 
 - The first `describe` always matches the name of the class or function being tested
-- Nested `describe` blocks use one of two prefixes:
-  - **`when ...`** — describes the condition or state being set up (e.g., `'when person details are found'`, `'when the request fails'`)
-  - **`for ...`** — describes a variant within a condition (e.g., `'for an employee'`, `'for a contractor'`)
+- Keep `describe` blocks **flat**. Scenario variants come from `setup()` parameters or separate named factories — not from nested `describe` + `beforeEach` pyramids (see [Test Structure](#test-structure--arrange-act-assert-with-setup-factories))
+- When you do nest, nested `describe` blocks use one of two prefixes:
+  - **`when ...`** — describes the condition or state being set up (e.g., `'when the request fails'`)
+  - **`for ...`** — describes a variant within a condition (e.g., `'for an employee'`)
 
-These compose naturally when stacked: `when person details are found` > `for an employee`.
+## Test Structure — Arrange-Act-Assert with Setup Factories
 
-## Unit Test Best Practices
+Every test follows **Arrange-Act-Assert**, with the arrangement extracted into a named `setup()` factory. The test body stays small: call setup, act, assert.
 
-- Add setup code in `beforeEach` / `beforeAll` when tests in that block require shared setup. Not every `describe` block needs setup hooks.
-- Add all teardown / cleanup in `afterEach` / `afterAll` only when the specific test block requires it (e.g., resetting state that persists between tests). Not every test needs teardown.
-- **`test` blocks must contain only `expect` calls — no variable declarations, no queries, no
-  computation.** All setup, querying, and value assignment belongs in `beforeEach`. Declare
-  variables at the `describe` scope and assign them in `beforeEach`. This applies to everything:
-  `screen.getByText()`, `screen.getAllByText()`, `container.querySelector()`, function calls,
-  computed values — all of it goes in `beforeEach`, never in `test`.
+```typescript
+describe('getAvatarUrl', () => {
+	test('returns the profile avatar when one exists', () => {
+		const { userProfile, appSettings } = setupAvatar({ profile: 'p.png' });
+
+		const avatarUrl = getAvatarUrl({ userProfile, appSettings });
+
+		expect(avatarUrl).toBe('p.png');
+	});
+});
+```
+
+**Rules:**
+
+- **Arrange in a `setup()` factory.** The factory wires mocks and builds fixtures, then returns the locals the test needs as `const`s. Do **not** hold the subject under test in a shared `let` reassigned across `beforeEach` blocks — that is mutable test state, and it forces readers to trace setup up and down the file.
+- **Act and assert live in the `test`**, not in `beforeEach`. Once setup is a factory, a `beforeEach` is rarely needed. (Component tests are the one accepted exception: `render()` is the act but lives in the `setup()` factory by convention — see [unit-testing-react-components.md](./unit-testing-react-components.md#the-render-pattern).)
+- **One `setup()` and one act per test.** Two setups or two acts means two tests. Multiple `expect`s are fine only when they assert one behavior's result. (`userEvent.setup()` is not an arrange factory and doesn't count toward this — see [Testing User Interactions](./unit-testing-react-components.md#testing-user-interactions).)
+- **No nested method calls in the act.** Assign each call's result to a named `const` and reference it — never nest one call inside another's arguments when building the subject under test. Two exceptions: (1) the error case, where the act must sit inside the matcher: `expect(() => parse(bad)).toThrow()`; (2) assertion-matcher composition such as `toEqual(expect.objectContaining(...))` or `expect.any(...)`, where nesting matchers is the intended form.
+- **Blank line between arrange, act, and assert.** The spacing makes the three blocks visible at a glance.
+- **Do not add `// arrange` / `// act` / `// assert` captions.** The structure is already visible from the spacing and the setup → act → `expect` shape; labelling it is redundant noise that rots.
+- **Test behavior, not internals.** Assert the observable output a consumer sees, not internal fields that happened to be set.
+- When asserting multiple properties of one result, prefer a single `expect` over one `expect` per property. For a **partial** match use `toEqual(expect.objectContaining({ ... }))` — not `toStrictEqual`: when the argument is an asymmetric matcher, Jest only runs the matcher and the "strict" extra-property/undefined checks never fire, so `toStrictEqual` here is identical to `toEqual` but misleadingly implies strictness. Reserve `toStrictEqual` for **whole-object** assertions where you pass a concrete expected object and strictness actually applies.
+- Cover all code paths including conditional branches, error handling, and boundary conditions.
+- Use existing enums or constants instead of magic strings when those values exist in the codebase.
+- Each test should exercise a unique code path — avoid redundant tests that only vary input without testing different behavior.
+
+### Setup Factories
+
+A setup factory encapsulates all arrangement for a unit and returns the locals each test needs. It configures any number of mocks in one call:
+
+```typescript
+const setupAvatar = ({
+	profile = null,
+	gravatar = null,
+}: { profile?: string | null; gravatar?: string | null } = {}) => {
+	mockGetAvatarFromProfile.mockReturnValue(profile);
+	mockGetAvatarFromGravatar.mockReturnValue(gravatar);
+
+	const userProfile = new UserProfile({ profileData: { email: 'user@example.com' } });
+	const appSettings = new AppSettings({ defaultPreferences: {} });
+
+	return { userProfile, appSettings };
+};
+```
+
+- **One factory configures any number of mocks** — a single factory call is the whole arrangement.
+- **Variants come from parameters.** A test passes only the values it cares about.
+- **A single explicit override is allowed** for the one variable a test varies:
 
   ```typescript
-  // ❌ WRONG — querying and assigning inside test
-  test('should render the GitHub gradient', () => {
-      const gradient = container.querySelector('#grad-github');
-      expect(gradient).toBeInTheDocument();
-  });
-
-  test('should render the heading', () => {
-      expect(screen.getByText('Hello')).toBeInTheDocument();
-  });
-
-  // ✅ CORRECT — variables declared at describe scope, assigned in beforeEach
-  describe('gradients', () => {
-      let gradGithub: Element | null;
-      let heading: HTMLElement;
-
-      beforeEach(() => {
-          gradGithub = container.querySelector('#grad-github');
-          heading = screen.getByText('Hello');
-      });
-
-      test('should render the GitHub gradient', () => {
-          expect(gradGithub).toBeInTheDocument();
-      });
-
-      test('should render the heading', () => {
-          expect(heading).toBeInTheDocument();
-      });
-  });
+  const { userProfile, appSettings } = setupAvatar();
+  mockGetAvatarFromProfile.mockReturnValue('https://cdn.example.com/p.png'); // the one thing this test changes
   ```
 
-  This allows for cleaner and easier to maintain code for future devs that need to update /
-  tweak the test case. This will also force better `describe` statements and more manageable
-  testing scenarios.
-- When asserting multiple properties, prefer a single `expect` with `toStrictEqual` and
-  `expect.objectContaining()` over individual `expect` calls per property
-- Cover all code paths including conditional branches, error handling, and boundary conditions
-- Use existing enums or constants instead of magic strings when those values exist in the codebase
-- Each test should exercise a unique code path — avoid redundant tests that only vary input without
-  testing different behavior
+- **Cap factory sprawl.** If a scenario needs a substantially different arrangement, write a second named factory (`setupEmployee`, `setupContractor`) rather than over-parameterizing one mega-factory.
 
 ## Adding Mocks
 
@@ -191,11 +201,11 @@ Use a **hybrid approach** based on mock scope:
 When multiple tests need to mock the same module, create a `__mocks__` folder alongside the source:
 
 ```
-src/app/routes/events/
-├── events.service.ts
-├── events.service.unit.test.ts
+src/events/
+├── EventService.ts
+├── EventService.unit.test.ts
 └── __mocks__/
-    └── events.service.ts        # Shared mock for events.service
+    └── EventService.ts        # Shared mock for EventService
 ```
 
 ### Mock Section Formatting
@@ -207,7 +217,6 @@ Use `// Mocked Imports` and `// -------------------------` separators to visuall
 ```typescript
 // Mocked Imports
 // -------------------------
-let mockAdTagProps: IAdTagProps | null = null;
 const mockGetAdTagProps = jest.fn<(params: { tagId: string }) => IAdTagProps | null>();
 
 jest.mock('@/framework/base/ad-tag/common/utils/ad-tag/get-ad-tag-props', () => ({
@@ -237,21 +246,17 @@ jest.mock('@/utils/get-avatar', () => ({
 
 ### Inline Mocks
 
-When your class/function under test imports a method from another file, and you need to
-manipulate its output use `jest.mock` to override the import and mock its output.
+When your class/function under test imports a method from another file, and you need to manipulate its output, use `jest.mock` to override the import.
 
-**Important**: The mocked return value and function names should have the word `mock`
-prepended. Jest hoists `jest.mock()` calls to the top of the file — only variables prefixed
-with `mock` are accessible inside the factory function.
+**Important**: Mock variables must have the word `mock` prepended. Jest hoists `jest.mock()` calls to the top of the file — only variables prefixed with `mock` are accessible inside the factory function.
 
 Example setup:
 
 ```typescript
-let mockAdTagProps: IAdTagProps | null = null;
 const mockGetAdTagProps = jest.fn<(params: { tagId: string }) => IAdTagProps | null>();
 
 // The arrow wrapper delegates to the jest.fn() so we can
-// control return values per-test via mockReturnValue in beforeEach.
+// control return values per-test via mockReturnValue.
 jest.mock(
 	'@/framework/base/ad-tag/common/utils/ad-tag/get-ad-tag-props',
 	() => ({
@@ -260,13 +265,13 @@ jest.mock(
 );
 ```
 
-Then set the return value in `beforeEach`:
+Set the mock's return value inside the unit's `setup()` factory — never in a `beforeEach`. With `clearMocks: true` in the Jest config (see [Mock Cleanup](#mock-cleanup)), call tracking resets automatically before each test, so no manual `mockClear()` is needed; the return value is re-set fresh by each test's `setup()` factory:
 
 ```typescript
-beforeEach(() => {
-	mockGetAdTagProps.mockClear();
-	mockGetAdTagProps.mockReturnValue(mockAdTagProps);
-});
+const setupAdTag = ({ tagProps = null }: { tagProps?: IAdTagProps | null } = {}) => {
+	mockGetAdTagProps.mockReturnValue(tagProps);
+	// ...build and return the fixtures the test needs
+};
 ```
 
 ### Mock Typing Rules
@@ -323,34 +328,38 @@ packages/your-package/
 
 ## Async Testing
 
-Use `async`/`await` in `beforeEach` for setup that involves promises. Use `mockResolvedValue`
-and `mockRejectedValue` to configure async mocks. Use `expect().rejects` to assert rejected
-promises.
+Configure async mocks with `mockResolvedValue` / `mockRejectedValue` in the setup factory. The act is `await`ed in the test. Assert rejected promises with `expect().rejects`.
 
 ```typescript
-describe('when the request succeeds', () => {
-	beforeEach(async () => {
-		mockFetchUser.mockResolvedValue({ id: '1', name: 'Test User' });
-		result = await getUserData({ userId: '1' });
-	});
+const setupUserData = ({
+	user = null,
+	error = null,
+}: { user?: UserData | null; error?: Error | null } = {}) => {
+	if (error) {
+		mockFetchUser.mockRejectedValue(error);
+	} else {
+		mockFetchUser.mockResolvedValue(user as UserData);
+	}
+};
 
-	test('should return the user data', () => {
+describe('getUserData', () => {
+	test('returns the user data when the user exists', async () => {
+		setupUserData({ user: { id: '1', name: 'Test User' } });
+
+		const result = await getUserData({ userId: '1' });
+
 		expect(result).toStrictEqual({ id: '1', name: 'Test User' });
 	});
-});
 
-describe('when the request fails', () => {
-	beforeEach(() => {
-		mockFetchUser.mockRejectedValue(new Error('Not found'));
-	});
+	test('throws when the user does not exist', async () => {
+		setupUserData({ error: new Error('Not found') });
 
-	test('should throw an error', async () => {
-		await expect(getUserData({ userId: '999' })).rejects.toThrow(
-			'Not found',
-		);
+		await expect(getUserData({ userId: '999' })).rejects.toThrow('Not found');
 	});
 });
 ```
+
+The error case is the one place the act sits inside the assertion (`expect(...).rejects`) — its rejection must be caught by the matcher.
 
 ## Testing Hooks
 
@@ -371,46 +380,55 @@ jest.mock('preact/hooks', () => ({
 // -------------------------
 ```
 
-Call the hook directly in `beforeEach`, then invoke the captured effect callback in the appropriate `describe` block to trigger side effects:
+Wire the hook call into a `setup()` factory, then invoke the captured effect callback in the test to trigger side effects:
 
 ```typescript
-describe('useEscapeKey', () => {
-	beforeEach(() => {
-		mockEffectCallback = undefined;
-		useEscapeKey({ isActive: true, onEscape: mockOnEscape });
-	});
+const setupEscapeKey = ({ isActive = true }: { isActive?: boolean } = {}) => {
+	mockEffectCallback = undefined;
+	const addEventListenerSpy = jest.spyOn(document, 'addEventListener');
+	const onEscape = jest.fn<() => void>();
+	useEscapeKey({ isActive, onEscape });
 
-	test('should add a keydown event listener', () => {
+	return { addEventListenerSpy, onEscape };
+};
+
+describe('useEscapeKey', () => {
+	test('adds a keydown event listener', () => {
+		const { addEventListenerSpy } = setupEscapeKey({ isActive: true });
+
 		mockEffectCallback!();
+
 		expect(addEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
 	});
 });
 ```
 
-Only mock the hook primitives the hook under test actually uses. Use `mockRestore()` in `afterEach` for any `jest.spyOn` calls on DOM APIs (e.g., `window.addEventListener`).
+Only mock the hook primitives the hook under test actually uses.
 
 ## Module Isolation with `jest.isolateModules`
 
 Use `jest.isolateModules` when testing code that has side effects at import time (e.g., reads `document.currentScript`, checks `document.readyState`). Each call gets a fresh module instance, so per-test DOM state changes take effect on the next import.
 
 ```typescript
-describe('when auto-init is disabled', () => {
-	beforeEach(() => {
-		const mockScript = document.createElement('script');
-		mockScript.dataset.autoInit = 'false';
+const setupAutoInit = ({ autoInit }: { autoInit: 'true' | 'false' }) => {
+	const mockScript = document.createElement('script');
+	mockScript.dataset.autoInit = autoInit;
 
-		Object.defineProperty(document, 'currentScript', {
-			value: mockScript,
-			writable: true,
-			configurable: true,
-		});
+	Object.defineProperty(document, 'currentScript', {
+		value: mockScript,
+		writable: true,
+		configurable: true,
+	});
+};
+
+describe('autoInitInBrowser', () => {
+	test('does not instantiate Widget when auto-init is disabled', () => {
+		setupAutoInit({ autoInit: 'false' });
 
 		jest.isolateModules(() => {
 			require('./autoInitInBrowser').autoInitInBrowser();
 		});
-	});
 
-	test('should not instantiate Widget', () => {
 		expect(mockWidgetConstructor).not.toHaveBeenCalled();
 	});
 });
@@ -432,10 +450,10 @@ import { expect, describe, test } from '@jest/globals';
 import { autoInitInBrowser } from '@modules/init/autoInitInBrowser';
 
 describe('autoInitInBrowser', () => {
-	describe('when running in a non-browser environment', () => {
-		test('should return early without mounting', () => {
-			expect(autoInitInBrowser()).toBeUndefined();
-		});
+	test('returns early without mounting in a non-browser environment', () => {
+		const result = autoInitInBrowser();
+
+		expect(result).toBeUndefined();
 	});
 });
 ```
@@ -444,9 +462,7 @@ Name the file with a suffix that distinguishes it from the main test: e.g., `aut
 
 ## Parameterized Tests
 
-Use `test.each` when multiple inputs exercise the **same code path** with different expected
-outputs. When different inputs exercise **different code paths**, use separate `describe` blocks
-instead.
+Use `test.each` when multiple inputs exercise the **same code path** with different expected outputs. When different inputs exercise **different code paths**, use separate tests instead.
 
 ```typescript
 describe('formatCurrency', () => {
@@ -455,9 +471,11 @@ describe('formatCurrency', () => {
 		{ amount: 100, locale: 'en-GB', expected: '£1.00' },
 		{ amount: 0, locale: 'en-US', expected: '$0.00' },
 	])(
-		'should format $amount in $locale as $expected',
+		'formats $amount in $locale as $expected',
 		({ amount, locale, expected }) => {
-			expect(formatCurrency({ amount, locale })).toBe(expected);
+			const formatted = formatCurrency({ amount, locale });
+
+			expect(formatted).toBe(expected);
 		},
 	);
 });
@@ -476,19 +494,19 @@ Prefer `jest.mock` (module-level) when:
 - You need to replace the entire module before it's imported
 
 ```typescript
-// Mocked Imports
-// -------------------------
-const mockUserRepositoryUpdate = jest.spyOn(userRepository, 'update');
-// -------------------------
+const setupUserUpdate = ({ user }: { user: User }) => {
+	const mockUpdate = jest.spyOn(userRepository, 'update').mockResolvedValue(user);
 
-describe('when the user is updated', () => {
-	beforeEach(() => {
-		mockUserRepositoryUpdate.mockClear();
-		mockUserRepositoryUpdate.mockResolvedValue(mockUser);
-	});
+	return { mockUpdate };
+};
 
-	test('should call update with the correct args', () => {
-		expect(mockUserRepositoryUpdate).toHaveBeenCalledWith({
+describe('updateUser', () => {
+	test('calls the repository with the correct args', async () => {
+		const { mockUpdate } = setupUserUpdate({ user: mockUser });
+
+		await updateUser({ id: 'user-1', name: 'Updated' });
+
+		expect(mockUpdate).toHaveBeenCalledWith({
 			where: { id: 'user-1' },
 			data: { name: 'Updated' },
 		});
@@ -496,25 +514,28 @@ describe('when the user is updated', () => {
 });
 ```
 
-Use `mockRestore()` (not `mockClear()`) in cleanup if you need to restore the original implementation after spying.
+Asserting the repository was called with the right args is testing *behavior* here, not internals: the persistence call is this unit's observable side effect at its boundary, so the call itself is the output a consumer relies on.
+
+With `restoreMocks: true` in the Jest config (see [Mock Cleanup](#mock-cleanup)), spies are restored automatically before each test — no manual `mockRestore()` needed.
 
 ## Mock Cleanup
 
-Use `mockClear()` in `beforeEach` to reset call tracking between tests. This preserves
-mock wiring while clearing `calls`, `instances`, and `results`.
+Mock cleanup is handled by **Jest config, not per-test code**. Set these in the package's Jest config:
 
-- **`mockClear()`** — resets call tracking only (use this)
-- **`mockReset()`** — also removes `mockReturnValue` / `mockImplementation` (rarely needed)
-- **`mockRestore()`** — also restores original implementation (only for `jest.spyOn`)
-
-```typescript
-beforeEach(() => {
-	mockGetPersonDetails.mockClear();
-	mockGetPersonDetails.mockReturnValue(mockPersonDetails);
-});
+```javascript
+// jest.config.js / jest.config.ts
+{
+	clearMocks: true,    // clear call tracking (calls, instances, results) before each test
+	restoreMocks: true,  // restore jest.spyOn originals before each test
+}
 ```
 
-Prefer per-mock `mockClear()` over global `jest.clearAllMocks()` for explicitness. For `jest.spyOn`-heavy tests, `jest.restoreAllMocks()` in `afterEach` is acceptable as a concise alternative to individual `mockRestore()` calls.
+With these set, every mock starts each test with clean call tracking and its `setup()` factory wires the return value fresh. Do **not** add manual `mockClear()` calls or a cleanup `beforeEach` — the config does it.
+
+- **`clearMocks: true`** — clears `calls`, `instances`, `contexts`, and `results` before each test (equivalent to `jest.clearAllMocks()`). It does **not** clear `mockReturnValue` / `mockImplementation` — that is `resetMocks`. Because every test re-sets its return values in `setup()`, `clearMocks` is sufficient and avoids wiping implementations; reach for `resetMocks` only if a package genuinely needs return values auto-cleared.
+- **`restoreMocks: true`** — additionally restores the original implementation of every `jest.spyOn` before each test (it does not affect standalone `jest.fn()` return values).
+
+**If the package's Jest config lacks these:** add them. But `clearMocks` changes behavior for **every existing test in the package** — any test relying on a mock set once in `beforeAll` (expecting it to persist across tests) will break. After adding, run the package's full `test:unit`; if pre-existing tests fail, **flag it in your report** rather than mass-editing legacy tests.
 
 ## Running Tests
 
