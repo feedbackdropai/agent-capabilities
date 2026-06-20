@@ -67,6 +67,15 @@ It runs a gated pipeline, stopping if any gate fails rather than compounding err
 Use `--skip-refactor` to stop after tests. To run it against a repo with different conventions,
 append an overrides block (see [Overrides](#overrides)).
 
+Don't have a plan yet? Generate an A-grade one first, then hand it to `implement`:
+
+```
+/fdrop:orchestrator:plan add retry logic to checkout
+```
+
+It explores the codebase, interviews you for the decisions only you can make, drafts the plan,
+grills it for edge cases, and grades it to A — producing a plan ready for `/fdrop:orchestrator:implement`.
+
 ## Usage
 
 ### Invocation
@@ -204,25 +213,33 @@ Skills are invoked via `/`, agents via `@`. Context skills have no input — the
 | `fdrop:code:style-guide` | Code style requirements | - | |
 | `fdrop:code:tests:unit:jest` | Unit test requirements (jest) | - | |
 | **Orchestrators** | | | |
+| `fdrop:orchestrator:plan` | Builds an A-grade plan: explore → elicit → draft → grill → grade | `<feature-or-notes>` | ✅ |
 | `fdrop:orchestrator:implement` | Spawns build → test → refactor agents sequentially | `<plan-file>` | ✅ |
 | `fdrop:orchestrator:implement-all` | Runs `implement` on each plan in a folder. Stops on failure | `<folder>` | ✅ |
 | `fdrop:orchestrator:refactor-all` | Iterative refactoring via executor subagents | `<folder>` | ✅ |
 | `fdrop:orchestrator:100-test-coverage` | Spawns test-writer agents until 100% coverage | `<package-filter>` | ✅ |
-| `fdrop:orchestrator:all-plans-to-A` | Grades and fixes all plans in a folder to A | `<folder>` | ✅ |
+| `fdrop:orchestrator:all-plans-to-A` | Brings all plans in a folder to A, surfacing decision gaps | `<folder>` | ✅ |
 | `fdrop:orchestrator:all-skills-to-A` | Grades all skills/agents to A in parallel batches | - | - |
 | **Tasks** | | | |
-| `fdrop:task:plan-to-A` | Grade-fix-regrade loop on a single plan | `[<overview>] <plan-file>` | ✅ |
+| `fdrop:task:plan-to-A` | Lints then gap-checks a plan to A (non-interactive) | `[<overview>] <plan-file>` | ✅ |
 | `fdrop:task:refactor-plan` | Analyze code and create refactor suggestions | `<folder>` or changed files | ✅ |
 | `fdrop:task:skill-to-A` | Grades and improves a skill to A grade | `<file-path>` | - |
 | **Tools** | | | |
-| `fdrop:tool:grade-plan` | One-shot plan grade with structured report | `[<overview>] <plan-file>` | ✅ |
-| `fdrop:tool:grade-skill` | Grades a skill's quality with improvement suggestions | `<file-path>` | - |
+| `fdrop:tool:lint-plan` | Flags structural/mechanical plan defects with exact fixes | `<plan-file>` | ✅ |
+| `fdrop:tool:check-plan-gaps` | Surfaces decision-level gaps that force the agent to guess | `<plan-file>` | ✅ |
+| `fdrop:tool:grade-skill` | Grades a skill/agent on nine axes with gaps and fixes | `<file-path>` | - |
+| `fdrop:tool:grill-me` | Interviews you to stress-test a plan or design | plan in context | - |
 | **Agents** | | | |
 | `fdrop:agent:feature-executor` | Implements a plan. Usually spawned by orchestrators | `<plan-file>` | ✅ |
+| `fdrop:agent:implement` | Runs build → test → refactor end-to-end as a subagent | `<plan-file>` | ✅ |
 | `fdrop:agent:refactor-executor` | Refactors code in target | `<folder>` or `<file-list>` | ✅ |
 | `fdrop:agent:unit-test-writer` | Writes unit tests for target folder | `<folder>` | ✅ |
-| `fdrop:agent:grade-plan` | Wraps `tool:grade-plan` as a spawnable subagent | `[<overview>] <plan-file>` | ✅ |
-| `fdrop:agent:skill-to-A` | Grades and improves a single skill file to A | `<file-path>` | - |
+| `fdrop:agent:plan-writer` | Drafts a plan from a decisions record and exploration facts | decisions + facts | ✅ |
+| `fdrop:agent:plan-to-A` | Brings a plan to A, surfacing design gaps in its report | `[<overview>] <plan-file>` | ✅ |
+| `fdrop:agent:lint-plan` | Wraps `tool:lint-plan` as a spawnable subagent (read-only) | `<plan-file>` | ✅ |
+| `fdrop:agent:check-plan-gaps` | Wraps `tool:check-plan-gaps` as a subagent (read-only) | `<plan-file>` | ✅ |
+| `fdrop:agent:grade-skill` | Wraps `tool:grade-skill` as a spawnable subagent | `<file-path>` | ✅ |
+| `fdrop:agent:skill-to-A` | Grades and improves a single skill file to A | `<file-path>` | ✅ |
 
 ## Contributing
 
