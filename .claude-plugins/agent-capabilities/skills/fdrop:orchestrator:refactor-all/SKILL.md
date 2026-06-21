@@ -1,7 +1,7 @@
 ---
 name: fdrop:orchestrator:refactor-all
 description: Orchestrates iterative refactoring of a folder or changed files by spawning executor subagents.
-allowed-tools: Agent, Read, Bash, Skill
+allowed-tools: Agent, Read, Bash
 ---
 
 # Refactor-All Orchestrator
@@ -22,7 +22,7 @@ The input may include a `---` fenced block with override keys:
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `code-standards` | `/fdrop:code:standards` | Skill name or file path loaded by refactor-executor for coding rules |
-| `unit-test-standards` | `/fdrop:code:tests:unit:jest` | Skill name or file path loaded by refactor-executor for test conventions |
+| `unit-test-standards` | `/fdrop:code:tests:unit:jest` | Skill name or file path loaded by unit-test-writer (Step 3) for test conventions |
 | `extra-context` | (none) | Additional skills/docs loaded by refactor-executor before coding |
 | `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
 
@@ -39,10 +39,11 @@ You (the main thread) act as the orchestrator. You repeatedly spawn the **Execut
 | 0 | - | Resolve target, detect repo type, initialize tracking, pre-flight verification (hard gate) |
 | 1 | `fdrop:agent:refactor-executor` | Analyze code, generate refactor plan, apply changes, verify |
 | 2 | - | Evaluate result: loop (Case A), finish (Case B), or retry (Case C) |
-| 3 | - | Final verification |
-| 4 | - | Report |
+| 3 | `fdrop:agent:unit-test-writer` | Write/update tests for the refactored files to 100% coverage |
+| 4 | - | Final verification |
+| 5 | - | Report |
 
-The executor handles planning, execution, testing, and verification internally. Your role is to iterate until the executor reports `REFACTORING_COMPLETE` or the iteration cap is reached.
+The executor refactors and verifies (leaving the package type-clean and green) but does **not** author new tests. Once refactoring converges, you delegate test-writing for the changed files to `fdrop:agent:unit-test-writer` (Step 3) — the refactor → test order, so tests are written once against the final shape rather than regenerated on every refactor pass. Your role is to iterate the executor until it reports `REFACTORING_COMPLETE` or the iteration cap is reached, then drive coverage on what changed.
 
 ## Workflow
 
@@ -75,6 +76,8 @@ Scripts used by this orchestrator:
 |-----|---------|
 | `check` | Type checking |
 | `test-unit` | Unit tests |
+| `test-unit-coverage` | Passthrough only — the orchestrator never runs this. If present in the input or config, forward it to the test-writer agents (Step 3). |
+| `format-write` | Passthrough only — the orchestrator never runs this. If present in the input or config, forward it to the test-writer agents (Step 3). |
 
 ### 0b: Initialize Tracking
 
@@ -112,7 +115,6 @@ Spawn `fdrop:agent:refactor-executor` as a **subagent** (via the Agent tool) wit
 ```
 ---
 code-standards: <value>
-unit-test-standards: <value>
 extra-context:
   - <path-1>
   - <path-2>
@@ -146,7 +148,6 @@ The previous attempt returned an error. Here is the output:
 
 ---
 code-standards: <value>
-unit-test-standards: <value>
 extra-context:
   - <path-1>
   - <path-2>
@@ -158,15 +159,52 @@ scripts:
 
 **Maximum 2 error retries.** If both retry attempts also fail, go to Step 3 with the error details.
 
-### Step 3: Final Verification
+### Step 3: Write Tests for the Refactored Files
 
-After all iterations complete (either `REFACTORING_COMPLETE` was returned or the iteration cap was reached), run the resolved `check` and `test-unit` commands.
+Once refactoring has converged (Case B) or the iteration cap was reached, delegate test-writing for everything that changed. This is the refactor → test order: tests are written **once**, against the final refactored shape, rather than regenerated on every refactor pass.
 
-**If verification passes:** Proceed to Step 4.
+From your accumulated **Files changed** list, select only `.ts`/`.tsx` **source** files. Exclude barrel files (`index.ts`), type-only files, and existing test files (`*.unit.test.ts(x)`, `*.e2e.test.ts`).
 
-**If verification fails:** Note the failures in the report. The executor's internal verification should have caught these, but this final gate ensures the orchestrator independently confirms the codebase is green.
+**If no source files were changed** (e.g., the executor returned `REFACTORING_COMPLETE` on the first iteration with nothing to refactor), skip to Step 4 — there is nothing new to test.
 
-### Step 4: Report
+Otherwise, spawn `fdrop:agent:unit-test-writer` subagents (via the Agent tool) to bring the changed files to 100% coverage. `unit-test-writer` classifies each path as a module boundary or internal and routes coverage to the correct test file itself — pass it the changed source paths and let it handle classification.
+
+```
+Write unit tests for the following files:
+
+<changed-source-path-1>
+<changed-source-path-2>
+...
+
+Follow your full workflow (Phase 0 through Phase 5) to analyze, write, and validate unit tests for these files.
+```
+
+For monorepo targets, add the line: `This is in the <package-name> package.` If changed files span multiple packages, group them by package and spawn one test-writer subagent per package.
+
+If overrides were extracted from the input, append them so the test-writer has the same repo context (only include keys that were present in the input):
+
+```
+---
+unit-test-standards: <value>
+scripts:
+  check: <value>
+  test-unit-coverage: <value>
+  format-write: <value>
+---
+```
+
+- Launch up to **5 agents in parallel** (multiple Agent tool calls in a single message). If more than 5 packages, process in batches of 5 and wait for each batch before launching the next.
+- If a test-writer reports unresolved failures, record them — the final verification in Step 4 confirms the package is still green, and any remaining gaps are surfaced in the report.
+
+### Step 4: Final Verification
+
+After refactoring and test-writing complete, run the resolved `check` and `test-unit` commands.
+
+**If verification passes:** Proceed to Step 5.
+
+**If verification fails:** Note the failures in the report. The executor's and test-writer's internal verification should have caught these, but this final gate ensures the orchestrator independently confirms the codebase is green.
+
+### Step 5: Report
 
 Produce a consolidated summary using this format:
 
@@ -176,6 +214,7 @@ Produce a consolidated summary using this format:
 | Step | Status | Details |
 |------|--------|---------|
 | Pre-flight | PASS | <packages verified> |
+| Tests | PASS | <N source files covered> / skipped (no changes) |
 | Final verification | PASS | <packages verified> |
 
 | Iteration | Outcome | Files Changed |

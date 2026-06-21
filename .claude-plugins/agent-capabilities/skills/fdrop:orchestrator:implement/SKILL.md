@@ -1,7 +1,7 @@
 ---
 name: fdrop:orchestrator:implement
 description: Orchestrates feature implementation by sequentially spawning build, test, and refactor agents with verification gates between each step. Input is a feature description, a plan file path, or a plan in conversation context. Supports --skip-refactor flag to skip the refactor step.
-allowed-tools: Agent, Read, Bash, skill
+allowed-tools: Agent, Read, Bash
 ---
 
 # Input
@@ -28,7 +28,7 @@ The input may include a `---` fenced block with override keys:
 | Key                 | Default                         | Purpose                                                                 |
 | ------------------- | ------------------------------- | ----------------------------------------------------------------------- |
 | `code-standards`    | `/fdrop:code:standards`           | Skill name or file path loaded by feature-executor and refactor-executor for coding rules |
-| `unit-test-standards` | `/fdrop:code:tests:unit:jest`   | Skill name or file path loaded by unit-test-writer and refactor-executor for test conventions |
+| `unit-test-standards` | `/fdrop:code:tests:unit:jest`   | Skill name or file path loaded by unit-test-writer for test conventions |
 | `extra-context`     | (none)                          | Additional skills/docs loaded by downstream agents before coding |
 | `scripts`           | (auto-detected)                 | Map of script key → full command (use `{package}` placeholder for monorepo) |
 
@@ -218,14 +218,12 @@ From the tracked file list, select only `.ts` and `.tsx` files. Exclude everythi
 
 **If no `.ts`/`.tsx` files remain**, skip Steps 5 and 6 entirely — proceed directly to Step 7.
 
-Spawn `fdrop:agent:refactor-executor` as a subagent (`subagent_type: "fdrop:agent:refactor-executor"`) with the filtered file list and `skip-tests: true` (the orchestrator already handled test writing in Step 3):
+Spawn `fdrop:agent:refactor-executor` as a subagent (`subagent_type: "fdrop:agent:refactor-executor"`) with the filtered file list. Tests were already written in Step 3; the executor refactors and fixes any existing tests its changes break, but does not author new tests:
 
 ```
 Review and refactor the following changed files:
 
 <filtered list of .ts/.tsx files from Steps 1–4>
-
-skip-tests: true
 ```
 
 If overrides were extracted from the input, append them to the prompt (only include keys that were present in the input):
@@ -233,7 +231,6 @@ If overrides were extracted from the input, append them to the prompt (only incl
 ```
 ---
 code-standards: <value>
-unit-test-standards: <value>
 extra-context:
   - <path-1>
   - <path-2>
@@ -259,7 +256,7 @@ Run the resolved `check` and `test-unit` commands for each affected package.
 
 **If verification passes:** Run `git diff --name-only HEAD` and `git ls-files --others --exclude-standard` (to capture both modified and newly created files), and merge the results into your tracked file list. Then proceed to Step 7.
 
-**If verification fails:** Re-spawn `fdrop:agent:refactor-executor` with the error output and file list (still with `skip-tests: true`). **Maximum 2 retry spawns** (independent of Step 5's iteration count).
+**If verification fails:** Re-spawn `fdrop:agent:refactor-executor` with the error output and file list. **Maximum 2 retry spawns** (independent of Step 5's iteration count).
 
 If retries are exhausted, document the failures and proceed to Step 7.
 
