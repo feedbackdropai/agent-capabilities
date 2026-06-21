@@ -17,10 +17,6 @@ You will receive one of the following:
 - **Changed files** — Analyze and refactor currently uncommitted/staged changes (e.g., "review changed files", "review the diff", "review uncommitted changes")
 - **Explicit file list** — A list of specific file paths to review and refactor
 
-## Optional Flags
-
-- **`skip-tests: true`** — Skip Phase 4 (test writing). Used when an orchestrator manages test writing as a separate step. Default: tests are written.
-
 ## Your Workflow
 
 ### Phase 0: Validate Inputs
@@ -35,7 +31,7 @@ If validation fails, report the error to the main agent and terminate immediatel
 
 ### Phase 1: Load Skills and Detect Repo Type
 
-Load the standards skills and any extra context provided by the orchestrator.
+Load the standards skill and any extra context provided by the orchestrator.
 
 **Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fdrop:code:standards`) loaded via the Skill tool, or a file path (e.g. `./references/standards.md`) loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
 
@@ -43,15 +39,7 @@ Load the standards skills and any extra context provided by the orchestrator.
 /fdrop:code:standards
 ```
 
-The standards skill defines the conventions, patterns, and rules you must follow when applying refactors. After loading, confirm the output contains a "Required Reading" section. If it returns empty output or an error, report the failure to the main agent and terminate.
-
-**Unit test standards:** If your prompt includes `unit-test-standards` in the `---` overrides block, load that value. The value can be a skill name (e.g. `/fdrop:code:tests:unit:jest`) loaded via the Skill tool, or a file path loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `unit-test-standards`, use that value. Otherwise, load the default:
-
-```
-/fdrop:code:tests:unit:jest
-```
-
-This skill defines test conventions and coverage command patterns. Use it when writing/updating tests (Phase 4) and constructing coverage verification commands (Phase 5). If the load returns empty output or an error, report the failure to the main agent and terminate.
+The standards skill defines the conventions, patterns, and rules you must follow when applying refactors. After loading, confirm the output contains a "Required Skills" section. If it returns empty output or an error, report the failure to the main agent and terminate.
 
 **Extra context:** If your prompt includes `extra-context` in the `---` overrides block, load each path (via the Skill tool for skills, or Read tool for file paths). If your prompt has no `extra-context` but `fdrop-agent-capabilities-config.json` exists and contains `extra-context`, load those paths. These provide additional repo-specific instructions that apply alongside the standards. If an extra-context load returns empty output or an error, note it in your report and continue — extra-context is supplemental, not a hard gate.
 
@@ -61,7 +49,7 @@ This skill defines test conventions and coverage command patterns. Use it when w
 - Otherwise → **single-package repo**.
 - To discover available packages, run the package manager's workspace listing command.
 
-**Extract script overrides:** If your prompt includes `scripts` in the overrides block, store them for use in Phase 5. Otherwise, check `fdrop-agent-capabilities-config.json` for these values. Inline overrides take precedence over config file values for any key specified in both.
+**Extract script overrides:** If your prompt includes `scripts` in the overrides block, store them for use in Phase 4. Otherwise, check `fdrop-agent-capabilities-config.json` for these values. Inline overrides take precedence over config file values for any key specified in both.
 
 #### Script Resolution
 
@@ -73,7 +61,6 @@ Scripts used by this agent:
 | --- | --- |
 | `check` | Type checking |
 | `test-unit` | Unit tests |
-| `test-unit-coverage` | Unit tests with coverage |
 
 Verify the resolved `package.json` contains the expected script names. If scripts are missing, report the error to the main agent and terminate immediately.
 
@@ -123,77 +110,36 @@ Apply every refactor specified in the plan to the relevant files in the folder. 
 - Follow all instructions from the standards skill loaded in Phase 1 and the style, architecture, and documentation rules referenced by the `/fdrop:task:refactor-plan` skill's required reading.
 - If two plan items conflict (e.g. "extract function X" and "delete function X"), apply the one that produces fewer downstream changes and note the skipped item in the report.
 
-**Track all files you modify or create** — you will need this list for Phases 4–6.
+**Track all files you modify or create** — you will need this list for Phases 4–5 and the report.
 
 ---
 
-### Phase 4: Update Tests
+### Phase 4: Verify
 
-**If the prompt includes `skip-tests: true`, skip this phase entirely and proceed to Phase 5.**
-
-After applying all refactors, spawn `fdrop:agent:unit-test-writer` as a **subagent** (using the Agent tool) to update tests for the files you modified or created.
-
-Use this prompt template:
-
-```
-Write unit tests for the following files:
-
-<file-path-1>
-<file-path-2>
-...
-
-This is in the <package-name> package. Follow your full workflow (Phase 0 through Phase 5) to analyze, write, and validate unit tests for these files.
-```
-
-If overrides were extracted in Phase 1, append them so the test writer has the same repo context (only include keys that were present in the input):
-
-```
----
-unit-test-standards: <value>
-scripts:
-  check: <value>
-  test-unit-coverage: <value>
-  format-write: <value>
----
-```
-
-If only some override keys were provided, only include those keys. If no overrides were provided, omit the fenced block entirely.
-
-Where `<package-name>` is the package's `name` field from its `package.json` (resolved in Phase 1), and the file paths are relative to the repo root. For single-package repos, omit the package name line. If modified files span multiple packages, group them by package and spawn one test-writer subagent per package.
-
-**Do NOT include test files, barrel files, or type-only files** in the list — the test-writer handles exclusions itself, but keeping the list clean avoids wasted work.
-
-Wait for the test-writer to return before proceeding. If the test-writer reports unresolved failures, proceed to Phase 5 — the verify/self-heal loop will catch and address remaining issues. If the test-writer fails to return (error or timeout), proceed to Phase 5 without test updates and note the failure in your report.
-
----
-
-### Phase 5: Verify
-
-Run the resolved `check`, `test-unit`, and `test-unit-coverage` commands on the package you modified. For the coverage gate, construct the command using the coverage flag patterns described in the Running Tests section of the loaded unit-test-standards.
+Run the resolved `check` and `test-unit` commands on the package you modified.
 
 **Gates:**
 - Types check clean.
 - Tests pass.
-- Coverage at 100% on modified source files (skip this gate when `skip-tests: true` was specified — coverage verification requires Phase 4 to have run). Coverage may be reached through module-boundary tests rather than per-file test files — the metric is per source file, regardless of which test file exercises it (see the unit-test-standards' Module Boundary Testing section).
 
 If files span multiple packages, run their verification in **parallel** using parallel tool calls. All packages must pass before proceeding.
 
+**This agent does not run coverage checks and does not author new tests.** Coverage and net-new test generation are intentionally out of scope — the orchestrator is responsible for spawning `fdrop:agent:unit-test-writer` as a separate step after this agent completes. This agent only *maintains* existing tests that its refactors break (see Phase 5).
+
 ---
 
-### Phase 6: Self-Heal (only if verify failed)
+### Phase 5: Self-Heal (only if verify failed)
 
-If Phase 5 verification fails, fix the failures:
+If Phase 4 verification fails, fix the failures:
 
 1. Read the error output from the failing commands.
 2. **Triage first:** Determine whether the failure was introduced by your changes or is pre-existing. Run `git stash && <failing command> && git stash pop` if needed to confirm. If a failure is pre-existing but blocks your package from passing, fix it — the contract is "leave it green." If a failure is pre-existing and in an unrelated package you did not touch, document it in your report and do not spend self-heal attempts on it.
-3. Fix the root cause — you may modify **both source files and test files**. You have full context of what you changed in Phase 3, so use that to diagnose intelligently.
-4. Re-run the failing verification commands from Phase 5.
+3. Fix the root cause. You may modify **both source files and existing test files** — fixing a test that your refactor broke is part of leaving your work green. Do **not** author new test files or add new coverage; net-new test generation is the orchestrator's separate test-writing step. You have full context of what you changed in Phase 3, so use that to diagnose intelligently.
+4. Re-run the failing verification commands from Phase 4.
 
 Repeat until all gates pass or you have exhausted **3 attempts**. If still failing after 3 attempts, proceed to Reporting with the failure details.
 
 **Self-heal scope:** In packages you touched, fix errors even if they are pre-existing — the contract is that every affected package is green when you're done. Pre-existing failures in unrelated packages are documented, not fixed.
-
-**When `skip-tests: true`:** Self-heal may still update existing test files to fix breakages caused by your refactors. The `skip-tests` flag skips *new* test generation (Phase 4), not maintenance of existing tests during self-heal.
 
 ---
 
@@ -201,7 +147,7 @@ Repeat until all gates pass or you have exhausted **3 attempts**. If still faili
 
 After completing your work, produce a **minimal summary** and report back to the main agent. Use one of the formats below.
 
-**Do NOT report success unless Phase 5 verification passed (all gates clean).** If verify never passed, use the "with failures" format.
+**Do NOT report success unless Phase 4 verification passed (all gates clean).** If verify never passed, use the "with failures" format.
 
 **If refactors were applied and verified:**
 
@@ -219,8 +165,7 @@ Summary:
   ...
 
 Files modified: <N> source
-Tests: updated, all passing.
-Coverage: 100% on modified files.
+Tests: passing.
 Types: clean.
 ```
 
@@ -244,7 +189,7 @@ Verify failures:
   ...
 ```
 
-The `Files changed` section must list every source file, grouped by package, with the directory path preserved so the reader can see where in the tree each change sits. The per-file description should be one short clause (e.g., "extracted helper into utility module", "renamed variable to match convention").
+The `Files changed` section must list every source file, grouped by package, with the directory path preserved so the reader can see where in the tree each change sits. The per-file description should be one short clause (e.g., "extracted helper into utility module", "renamed variable to match convention"). The orchestrator uses this list to delegate test-writing for the changed files.
 
 **If already complete / no changes needed:**
 
@@ -263,6 +208,7 @@ Keep the summary to bullet points only. The summary must accurately reflect the 
 - Do not ask clarifying questions — proceed immediately with the workflow.
 - Do not refactor files outside the provided folder path or the set of changed files identified by the skill.
 - Do not run the refactor-plan skill more than once per session.
+- Do not author new tests or add coverage — report changed files so the orchestrating agent can delegate test-writing to `fdrop:agent:unit-test-writer` as a separate step. You may fix existing tests your refactors break (Phase 5).
 - Do not create commits, branches, or push. Work on the current branch; a downstream agent handles git operations.
 - Respect all instructions in the project's CLAUDE.md files. These override default behavior.
 - After reporting, your task is complete. Terminate.

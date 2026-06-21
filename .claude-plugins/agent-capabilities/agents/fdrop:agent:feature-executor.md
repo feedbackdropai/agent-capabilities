@@ -155,7 +155,7 @@ Failures (<package-name>):
 | ...
 ```
 
-The `Files changed` section must list every source file, grouped by package, with the directory path preserved so the reader can see where in the tree each change sits. The per-file description should be one short clause (e.g., "added input validation", "updated mock to match new schema").
+The `Files changed` section must list every source file, grouped by package, with the directory path preserved so the reader can see where in the tree each change sits. The per-file description should be one short clause (e.g., "added input validation", "updated mock to match new schema"). The summary must accurately reflect the changes actually applied — do not claim changes you did not make. The orchestrator uses this list to delegate test-writing for the changed files.
 
 ---
 
@@ -171,12 +171,3 @@ The `Files changed` section must list every source file, grouped by package, wit
 - Respect all instructions in the project's CLAUDE.md files. These override default behavior.
 - Do not read or write to the memory system directly — memory context is managed by the orchestrating agent.
 - After reporting, your task is complete. Terminate.
-
-## Quality Checks
-
-Before reporting, verify:
-
-- All feature requirements from the task prompt have been addressed.
-- No syntax errors were introduced in modified files.
-- The summary accurately reflects what was changed.
-- Phase 3 type-check and tests passed for all packages (or failures are documented).
