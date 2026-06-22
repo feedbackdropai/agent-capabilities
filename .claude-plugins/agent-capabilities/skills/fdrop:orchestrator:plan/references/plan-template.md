@@ -35,7 +35,7 @@ an edge-case handling — skip pure confirmations.
 |---|--------|---------------------|--------------------|--------|-----------|
 | 1 | Elicitation | <decision> | <A / B> | <chosen> | <one line> |
 
-<!-- Source is one of: Elicitation (Step 2), Grill (Step 5), Grade (Step 6).
+<!-- Source is one of: Elicitation (Step 2), Grill (Step 5), Converge (Step 6).
 If a decision was assumed rather than confirmed by the user, append
 "(assumption)" to the Choice cell. -->
 
@@ -112,7 +112,7 @@ decision or an edge-case handling — skip pure confirmations.
 |---|--------|---------------------|--------------------|--------|-----------|
 | 1 | Elicitation | <decision> | <A / B> | <chosen> | <one line> |
 
-<!-- Source is one of: Elicitation (Step 2), Grill (Step 5), Grade (Step 6). -->
+<!-- Source is one of: Elicitation (Step 2), Grill (Step 5), Converge (Step 6). -->
 
 ## Architecture
 

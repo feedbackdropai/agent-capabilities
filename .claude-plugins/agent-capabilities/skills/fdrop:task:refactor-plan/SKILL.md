@@ -69,4 +69,6 @@ Before analyzing code, read these documents:
 
 ## Instructions
 
-Read all documents listed above, then follow the analysis method, output format, and verdict specified in refactor-plan.md.
+Read all documents listed above, then follow the analysis method, severity classification, output format, and verdict specified in refactor-plan.md.
+
+If no target files are found (empty/non-existent folder in Mode 1, or a clean working tree in Mode 2), report `No files to analyze.` and stop.

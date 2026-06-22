@@ -34,6 +34,10 @@ If no overrides block is present, check for `fdrop-agent-capabilities-config.jso
 
 ## Instructions
 
+### Step 0: Preflight
+
+Confirm the `Plan:` path exists and is readable before reading it. If it is missing, malformed, or unreadable, stop and return the error result (see Step 4) — do not proceed into Step 1. If an overview was provided but is unreadable, proceed and check the plan as a standalone document.
+
 ### Step 1: Read Context
 
 Read the plan file. If an overview was provided, read it for design decisions, feature context, and dependencies the plan relies on.
@@ -68,6 +72,15 @@ Gaps: <n>
 ```
 
 Include the `Overview:` line only if an overview was provided. If there are no gaps, report `PLAN_GAPS: NONE` with an empty table (0 gaps).
+
+If the preflight (Step 0) failed, return the error result instead of the table:
+
+```
+PLAN_GAPS: ERROR
+
+Plan: <plan-path>
+Error: <why the plan path is missing or unreadable>
+```
 
 ## Checking Rules
 

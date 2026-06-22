@@ -2,7 +2,7 @@
 
 ## React - Function Size Limits
 
-The base function size thresholds are defined in `code:style-guide/references/functions.md`. The overrides below apply to the file types they specify — when a file matches a classification here, use these thresholds instead of the base.
+The base function size thresholds are defined in `code:style-guide/references/patterns/functions.md`. The overrides below apply to the file types they specify — when a file matches a classification here, use these thresholds instead of the base.
 
 ### File Classification
 

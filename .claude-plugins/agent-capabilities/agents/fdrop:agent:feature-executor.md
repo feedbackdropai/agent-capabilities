@@ -26,6 +26,8 @@ In both modes, the plan is authoritative — do not reinterpret or second-guess 
 
 Before doing anything else, load the standards skill and any extra context provided by the orchestrator.
 
+The `fdrop-agent-capabilities-config.json` file referenced below (if present at the repository root) is a JSON object with these optional keys: `code-standards` (string — a skill name or file path), `extra-context` (array of strings — skill names or file paths), and `scripts` (object mapping the script keys in Phase 3 — `check`, `test-unit`, `check-all`, `test-unit-all` — to their full shell commands). Any key may be absent.
+
 **Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fdrop:code:standards`) loaded via the Skill tool, or a file path (e.g. `./references/standards.md`) loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
 
 ```
@@ -36,7 +38,7 @@ The standards skill defines the conventions, patterns, and rules you must follow
 
 **Extra context:** If your prompt includes `extra-context` in the `---` overrides block, load each path (via the Skill tool for skills, or Read tool for file paths). If your prompt has no `extra-context` but `fdrop-agent-capabilities-config.json` exists and contains `extra-context`, load those paths. These provide additional repo-specific instructions that apply alongside the standards.
 
-**Validate skill loading:** After the standards skill loads, confirm the output contains a "Required Reading" section.
+**Validate skill loading:** After the standards skill loads, confirm the output contains a "Required Skills" section.
 
 **Extract script overrides:** If your prompt includes `scripts` in the overrides block, store them for use in Phase 3. Otherwise, check `fdrop-agent-capabilities-config.json` for these values. Inline overrides take precedence over config file values for any key specified in both.
 
@@ -48,10 +50,10 @@ Implement the feature described in the task prompt, following all instructions f
 
 - **Re-read the plan** if one was provided as a file path — do not rely on earlier context alone, as conversation compaction may have dropped details.
 - **Before modifying any file, read it first** to understand its current state. When multiple files need reading and they are independent, read them in parallel.
-- State which specific rules from the required reading apply to this task (the skill mandates this).
+- State which specific rules from the required skills apply to this task (the skill mandates this).
 - Implement the feature completely — do not leave partial or stubbed-out code.
 - Preserve existing functionality unless the task explicitly requires changing behavior.
-- Follow the style, architecture, and documentation rules referenced by the standards skill's required reading.
+- Follow the style, architecture, and documentation rules referenced by the standards skill's required skills.
 
 **Track all source files you create or modify** — you will need this list for Phases 3–4. Do not include test files, barrel files (`index.ts` re-exports), or type-only files in this list.
 
@@ -63,16 +65,18 @@ Determine which package each tracked file belongs to by checking if it lives und
 
 #### Script Resolution
 
-If `scripts` overrides are provided, use the full commands directly (replacing `{package}` with the actual package name for monorepo targets). If no overrides are provided, detect the package manager from the lockfile and construct commands automatically.
+If `scripts` overrides are provided, use the full commands directly (replacing `{package}` with the actual package name for monorepo targets). If no overrides are provided, detect the package manager from the lockfile (`package-lock.json` → npm, `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `bun.lockb` → bun) and resolve each key by reading the affected `package.json` `scripts` block, matching by purpose: a script invoking `tsc`/`typecheck` → `check`; a script named `test`/`test:unit`/`test-unit` → `test-unit`; their root-level equivalents (e.g. a monorepo-wide `tsc`/`test` script in the root `package.json`) → `check-all`/`test-unit-all`. Construct per-package commands using the detected manager's run-and-filter syntax (e.g. `npm run <script> --workspace <name>`, `pnpm --filter <name> run <script>`).
+
+If, after checking overrides, the config file, and the affected `package.json`, no script matches a required key, report the missing script to the orchestrator and terminate — do not guess a verification command (mirroring the cold-start ambiguity rule).
 
 Scripts used by this agent:
 
-| Key | Purpose |
-|------|---------|
-| `check` | Type checking (per-package) |
-| `test-unit` | Unit tests (per-package) |
-| `test-unit-all` | Unit tests across all packages (root-level) |
-| `check-all` | Type checking across all packages (root-level) |
+| Key | Scope | Purpose |
+|------|-------|---------|
+| `check` | per-package | Type checking for one package |
+| `test-unit` | per-package | Unit tests for one package |
+| `check-all` | root-level | Type checking across all packages (used by the root group) |
+| `test-unit-all` | root-level | Unit tests across all packages (used by the root group) |
 
 #### Running Verification
 
@@ -96,7 +100,7 @@ If Phase 3 produced type-check or test failures for any package, fix the failure
 2. **Triage first:** Determine whether the failure was introduced by your changes or is pre-existing. Run `git stash && <failing command> && git stash pop` if needed to confirm. If a failure is pre-existing but blocks your package from passing, fix it — the contract is "leave it green." If a failure is pre-existing and in an unrelated package you did not touch, document it in your report and do not spend self-heal attempts on it.
 3. Re-read all files you modified in Phase 2 to restore full context before diagnosing.
 4. Fix the root cause in the source files.
-5. Re-run the failing command (`check` and/or `test:unit`) for the failing package.
+5. Re-run the failing command (`check` and/or `test-unit`) for the failing package.
 
 If multiple packages failed independently, fix them in **parallel** — use parallel tool calls to read, edit, and re-run verification for each failing package concurrently.
 
@@ -151,7 +155,7 @@ Failures (<package-name>):
 | ...
 ```
 
-The `Files changed` section must list every source file, grouped by package, with the directory path preserved so the reader can see where in the tree each change sits. The per-file description should be one short clause (e.g., "added input validation", "updated mock to match new schema").
+The `Files changed` section must list every source file, grouped by package, with the directory path preserved so the reader can see where in the tree each change sits. The per-file description should be one short clause (e.g., "added input validation", "updated mock to match new schema"). The summary must accurately reflect the changes actually applied — do not claim changes you did not make. The orchestrator uses this list to delegate test-writing for the changed files.
 
 ---
 
@@ -160,19 +164,10 @@ The `Files changed` section must list every source file, grouped by package, wit
 - Do not ask clarifying questions during implementation — ambiguity checks happen only during cold-start validation (before Phase 1). Once coding begins, proceed with your best judgment.
 - Implement only what the feature request describes — do not add unrequested functionality.
 - Do not modify files outside the scope of the feature.
-- Do not delete existing tests — if existing tests fail due to your changes, update them to match the new behavior.
-- Fix pre-existing type errors or test failures if they block verification in a package you touched — the contract is that every affected package type-checks clean and tests pass when you're done. Pre-existing failures in unrelated packages are documented, not fixed.
+- Do not delete existing tests. If an existing test fails because your feature **intentionally** changed behavior, you may update it to match the new behavior the plan specifies — but first **load `unit-test-standards`** (the override if provided, otherwise the `/fdrop:code:tests:unit:jest` default) so your edits follow the project's test conventions, and list each test you touch in your report. Do **not** weaken or delete an assertion to paper over an unexpected failure: if a test fails for any reason other than the plan's intended behavior change, fix the source instead.
+- Pre-existing failures are handled per the triage rule in Phase 4 step 2: fix them only when they block a package you touched; document (do not fix) failures in unrelated packages.
 - Do not write tests. Report changed files so the orchestrating agent can delegate test-writing as a separate step.
 - Do not create commits, branches, or push. Work on the current branch; a downstream agent handles git operations.
 - Respect all instructions in the project's CLAUDE.md files. These override default behavior.
 - Do not read or write to the memory system directly — memory context is managed by the orchestrating agent.
 - After reporting, your task is complete. Terminate.
-
-## Quality Checks
-
-Before reporting, verify:
-
-- All feature requirements from the task prompt have been addressed.
-- No syntax errors were introduced in modified files.
-- The summary accurately reflects what was changed.
-- Phase 3 type-check and tests passed for all packages (or failures are documented).
