@@ -25,7 +25,7 @@ Before doing any work, validate the input you received:
 
 1. **Folder path** — Verify the path exists on disk and contains at least one `.ts` or `.tsx` file (recursively).
 2. **Changed files** — Run `git status --short` and confirm there are uncommitted or staged changes. If the working tree is clean, report "no changes to review" and terminate.
-3. **Explicit file list** — Verify each path exists on disk.
+3. **Explicit file list** — Verify each path exists on disk. If any path does not exist, report the missing paths to the main agent and terminate (fail-fast, consistent with the other input modes).
 
 If validation fails, report the error to the main agent and terminate immediately.
 
@@ -134,8 +134,9 @@ If Phase 4 verification fails, fix the failures:
 
 1. Read the error output from the failing commands.
 2. **Triage first:** Determine whether the failure was introduced by your changes or is pre-existing. Run `git stash && <failing command> && git stash pop` if needed to confirm. If a failure is pre-existing but blocks your package from passing, fix it — the contract is "leave it green." If a failure is pre-existing and in an unrelated package you did not touch, document it in your report and do not spend self-heal attempts on it.
-3. Fix the root cause. You may modify **both source files and existing test files** — fixing a test that your refactor broke is part of leaving your work green. Do **not** author new test files or add new coverage; net-new test generation is the orchestrator's separate test-writing step. You have full context of what you changed in Phase 3, so use that to diagnose intelligently.
-4. Re-run the failing verification commands from Phase 4.
+3. **Fix the root cause — default to fixing the source.** A test that passed before your refactor and fails after is a **presumed regression**: your change altered behavior. Restore the original behavior in the **source**, not by editing the test. You have full context of what you changed in Phase 3 — use it to diagnose.
+4. **Editing a test is allowed only for mechanical wiring fixes** that follow directly from a refactor-plan item: updating an import path for a moved/renamed file, updating a mock/stub signature for a changed function signature, or updating references to a renamed symbol. Before touching any test, **load `unit-test-standards`** (the `unit-test-standards` override if provided, otherwise the `/fdrop:code:tests:unit:jest` default) so your edits follow the project's test conventions rather than ad-hoc ones. You may **not** change, weaken, or delete an assertion to make a test pass — that masks a regression; fix the source instead. If a broken test needs more than a mechanical wiring fix (its logic or assertions must change), do **not** rewrite it: leave it failing, note it in your report as needing re-authoring, and let the orchestrator's test-writing step handle it. List every test file you touch in your report, with the reason.
+5. Re-run the failing verification commands from Phase 4.
 
 Repeat until all gates pass or you have exhausted **3 attempts**. If still failing after 3 attempts, proceed to Reporting with the failure details.
 
@@ -208,7 +209,7 @@ Keep the summary to bullet points only. The summary must accurately reflect the 
 - Do not ask clarifying questions — proceed immediately with the workflow.
 - Do not refactor files outside the provided folder path or the set of changed files identified by the skill.
 - Do not run the refactor-plan skill more than once per session.
-- Do not author new tests or add coverage — report changed files so the orchestrating agent can delegate test-writing to `fdrop:agent:unit-test-writer` as a separate step. You may fix existing tests your refactors break (Phase 5).
+- Do not author new tests or add coverage, and do not delete or weaken existing tests — report changed files so the orchestrating agent can delegate test-writing to `fdrop:agent:unit-test-writer` as a separate step. You may make mechanical wiring fixes to existing tests your refactors break (Phase 5, step 4); anything beyond that is left failing and reported for the orchestrator's test-writing step.
 - Do not create commits, branches, or push. Work on the current branch; a downstream agent handles git operations.
 - Respect all instructions in the project's CLAUDE.md files. These override default behavior.
 - After reporting, your task is complete. Terminate.

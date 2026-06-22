@@ -164,7 +164,7 @@ The `Files changed` section must list every source file, grouped by package, wit
 - Do not ask clarifying questions during implementation — ambiguity checks happen only during cold-start validation (before Phase 1). Once coding begins, proceed with your best judgment.
 - Implement only what the feature request describes — do not add unrequested functionality.
 - Do not modify files outside the scope of the feature.
-- Do not delete existing tests — if existing tests fail due to your changes, update them to match the new behavior.
+- Do not delete existing tests. If an existing test fails because your feature **intentionally** changed behavior, you may update it to match the new behavior the plan specifies — but first **load `unit-test-standards`** (the override if provided, otherwise the `/fdrop:code:tests:unit:jest` default) so your edits follow the project's test conventions, and list each test you touch in your report. Do **not** weaken or delete an assertion to paper over an unexpected failure: if a test fails for any reason other than the plan's intended behavior change, fix the source instead.
 - Pre-existing failures are handled per the triage rule in Phase 4 step 2: fix them only when they block a package you touched; document (do not fix) failures in unrelated packages.
 - Do not write tests. Report changed files so the orchestrating agent can delegate test-writing as a separate step.
 - Do not create commits, branches, or push. Work on the current branch; a downstream agent handles git operations.
