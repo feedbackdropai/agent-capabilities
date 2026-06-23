@@ -125,8 +125,9 @@ scripts:
 | `format-write` | `pnpm format:write` / `pnpm --filter {package} format:write` |
 | `check-all` | `pnpm test:check:all` |
 | `test-unit-all` | `pnpm test:unit:all` |
+| `build` | *opt-in — no default; runs as a post-change gate only when you set it* |
 
-When no `scripts` override is provided, the agent detects the package manager from the lockfile and repo type from the directory structure, then constructs commands automatically.
+When no `scripts` override is provided, the agent detects the package manager from the lockfile and repo type from the directory structure, then constructs commands automatically. The exception is `build`: it is **never** auto-detected and runs only when you explicitly set it — so if your environment builds automatically (e.g. a dev server that rebuilds on change), simply omit `build` and the agents skip it.
 
 Omit the block entirely to use defaults (auto-detected from repo).
 
@@ -147,6 +148,7 @@ As an alternative to inline `---` blocks, you can place an `fdrop-agent-capabili
   ],
   "scripts": {
     "check": "pnpm --filter {package} typecheck",
+    "build": "pnpm --filter {package} build",
     "test-unit": "pnpm --filter {package} test",
     "test-unit-coverage": "pnpm --filter {package} test:coverage",
     "format-write": "pnpm --filter {package} format:write",

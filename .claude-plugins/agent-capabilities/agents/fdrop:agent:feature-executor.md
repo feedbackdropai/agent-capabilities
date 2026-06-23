@@ -36,7 +36,7 @@ The standards skill defines the conventions, patterns, and rules you must follow
 
 **Extra code standards:** Resolve `extra-code-standards` (an array of skill names or file paths) and load each entry — additional repo-specific instructions that apply alongside the standards. Supplemental: if a load returns empty output or an error, note it in your report and continue.
 
-**Extract script overrides:** Resolve `scripts` (keys `check`, `test-unit`, `check-all`, `test-unit-all`) and store them for use in Phase 3.
+**Extract script overrides:** Resolve `scripts` (keys `check`, `test-unit`, `check-all`, `test-unit-all`, and the opt-in `build`) and store them for use in Phase 3.
 
 ### Phase 2: Code
 
@@ -73,6 +73,9 @@ Scripts used by this agent:
 | `test-unit` | per-package | Unit tests for one package |
 | `check-all` | root-level | Type checking across all packages (used by the root group) |
 | `test-unit-all` | root-level | Unit tests across all packages (used by the root group) |
+| `build` | per-package | **Opt-in** — compile/bundle the affected package |
+
+`build` is opt-in: run it only when it is provided via overrides or the config file. Never auto-detect it, and never terminate for a missing `build` — if it is absent, skip the build step entirely. The "missing required key → terminate" rule above applies only to `check`, `test-unit`, `check-all`, and `test-unit-all`.
 
 #### Running Verification
 
@@ -82,6 +85,8 @@ These run in addition to any per-package checks. If a feature only modifies root
 
 Run the resolved `check` and `test-unit` commands for all affected code. In a monorepo, run per-package commands for each affected package (use the package's `name` field from its `package.json` as the filter). If packages are independent, run their checks in **parallel** using parallel tool calls.
 
+If a `build` command was resolved, run it for each affected package after `check` and `test-unit`. When no `build` is configured, skip this step entirely.
+
 Collect all results before proceeding.
 
 **Note:** This agent does not run coverage checks. Coverage is intentionally out of scope — the orchestrator is responsible for spawning `fdrop:agent:unit-test-writer` as a separate step after this agent completes.
@@ -90,13 +95,13 @@ Collect all results before proceeding.
 
 ### Phase 4: Self-Heal (only if verify failed)
 
-If Phase 3 produced type-check or test failures for any package, fix the failures:
+If Phase 3 produced type-check, test, or build failures for any package, fix the failures:
 
 1. Read the error output.
 2. **Triage first:** Determine whether the failure was introduced by your changes or is pre-existing. Run `git stash && <failing command> && git stash pop` if needed to confirm. If a failure is pre-existing but blocks your package from passing, fix it — the contract is "leave it green." If a failure is pre-existing and in an unrelated package you did not touch, document it in your report and do not spend self-heal attempts on it.
 3. Re-read all files you modified in Phase 2 to restore full context before diagnosing.
 4. Fix the root cause in the source files.
-5. Re-run the failing command (`check` and/or `test-unit`) for the failing package.
+5. Re-run the failing command (`check`, `test-unit`, and/or `build`) for the failing package.
 
 If multiple packages failed independently, fix them in **parallel** — use parallel tool calls to read, edit, and re-run verification for each failing package concurrently.
 

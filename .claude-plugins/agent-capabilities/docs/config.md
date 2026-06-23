@@ -26,7 +26,7 @@ All keys are optional — include only those you want to override.
 | `extra-code-standards` | array — skill names or file paths | (none) | Additional repo-specific context loaded **alongside `code-standards`**, wherever `code-standards` is loaded. **Supplemental** — a failed load is noted and skipped, never a hard gate. |
 | `unit-test-standards` | string — skill name or file path | `/fdrop:code:tests:unit:jest` | Unit-test conventions and coverage-command patterns loaded by test-writing agents. **Hard gate** for the test-writer. |
 | `extra-unit-test-standards` | array — skill names or file paths | (none) | Additional repo-specific context loaded **alongside `unit-test-standards`**, wherever `unit-test-standards` is loaded. **Supplemental** — a failed load is noted and skipped, never a hard gate. |
-| `scripts` | object — script key → full shell command | (auto-detected from the lockfile) | Verification commands. Use the `{package}` placeholder for the package name in monorepo targets. Recognized keys: `check`, `test-unit`, `test-unit-coverage`, `format-write`, `test-unit-all`, `check-all`. |
+| `scripts` | object — script key → full shell command | (auto-detected from the lockfile) | Verification commands the agents run to check their work. Use the `{package}` placeholder for the package name in monorepo targets. Recognized keys: `check`, `test-unit`, `test-unit-coverage`, `format-write`, `test-unit-all`, `check-all`, and the **opt-in** `build`. `build` runs as a post-change gate **only when you set it** (never auto-detected) — omit it if your environment builds automatically. |
 
 ### Channel rule
 
@@ -52,6 +52,7 @@ This keeps test-only context out of code-only agents and vice versa. To **replac
   ],
   "scripts": {
     "check": "pnpm --filter {package} typecheck",
+    "build": "pnpm --filter {package} build",
     "test-unit": "pnpm --filter {package} test",
     "test-unit-coverage": "pnpm --filter {package} test:coverage",
     "format-write": "pnpm --filter {package} format:write",

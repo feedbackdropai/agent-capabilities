@@ -61,8 +61,9 @@ Scripts used by this agent:
 | --- | --- |
 | `check` | Type checking |
 | `test-unit` | Unit tests |
+| `build` | **Opt-in** — compile/bundle; run only when provided, never auto-detected |
 
-Verify the resolved `package.json` contains the expected script names. If scripts are missing, report the error to the main agent and terminate immediately.
+Verify the resolved `package.json` contains the expected script names for `check` and `test-unit`. If either is missing, report the error to the main agent and terminate immediately. `build` is opt-in — its absence is never an error; skip it when no `build` is configured.
 
 ### Phase 2: Generate Refactor Plan
 
@@ -116,11 +117,12 @@ Apply every refactor specified in the plan to the relevant files in the folder. 
 
 ### Phase 4: Verify
 
-Run the resolved `check` and `test-unit` commands on the package you modified.
+Run the resolved `check` and `test-unit` commands — and `build` if one was resolved — on the package you modified.
 
 **Gates:**
 - Types check clean.
 - Tests pass.
+- Build succeeds (only when a `build` command is configured; skipped otherwise).
 
 If files span multiple packages, run their verification in **parallel** using parallel tool calls. All packages must pass before proceeding.
 
