@@ -24,16 +24,7 @@ A **folder path** containing plan files (`.md` files).
 
 ## Overrides (optional)
 
-The input may include a `---` fenced block with override keys:
-
-| Key | Default | Purpose |
-|---|---|---|
-| `code-standards` | `/fdrop:code:standards` | Skill name or file path loaded by the grading agent for codebase conventions |
-| `extra-context` | (none) | Additional skills/docs loaded by the grading agent |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides.
-`---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply.
+This skill passes through `code-standards`, `extra-code-standards`, and `scripts` to each grading spawn. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../../docs/config.md) for the full field reference.
 
 Extract these values early and pass them to each `fdrop:agent:plan-to-A` spawn.
 
@@ -145,7 +136,7 @@ If overrides were extracted from the input, append them to the prompt:
 ```
 ---
 code-standards: <value>
-extra-context:
+extra-code-standards:
   - <path-1>
   - <path-2>
 ---

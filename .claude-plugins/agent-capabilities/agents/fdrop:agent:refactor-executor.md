@@ -31,17 +31,17 @@ If validation fails, report the error to the main agent and terminate immediatel
 
 ### Phase 1: Load Skills and Detect Repo Type
 
-Load the standards skill and any extra context provided by the orchestrator.
+Load the standards skill and any extra context. Resolve every override with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../docs/config.md) for the full field reference.
 
-**Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fdrop:code:standards`) loaded via the Skill tool, or a file path (e.g. `./references/standards.md`) loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
+**Code standards:** Resolve `code-standards` (a skill name loaded via the Skill tool, or a file path loaded via the Read tool); if unset, load the default:
 
 ```
 /fdrop:code:standards
 ```
 
-The standards skill defines the conventions, patterns, and rules you must follow when applying refactors. After loading, confirm the output contains a "Required Skills" section. If it returns empty output or an error, report the failure to the main agent and terminate.
+The standards skill defines the conventions, patterns, and rules you must follow when applying refactors. Confirm it returned content — empty output or an error is a hard failure: report it to the main agent and terminate. If the loaded standards reference required skills or reading, load those as well.
 
-**Extra context:** If your prompt includes `extra-context` in the `---` overrides block, load each path (via the Skill tool for skills, or Read tool for file paths). If your prompt has no `extra-context` but `fdrop-agent-capabilities-config.json` exists and contains `extra-context`, load those paths. These provide additional repo-specific instructions that apply alongside the standards. If an extra-context load returns empty output or an error, note it in your report and continue — extra-context is supplemental, not a hard gate.
+**Extra code standards:** Resolve `extra-code-standards` (an array of skill names or file paths) and load each entry — additional repo-specific instructions that apply alongside the standards. Supplemental: if a load returns empty output or an error, note it in your report and continue — not a hard gate.
 
 **Detect repo type:**
 
@@ -49,7 +49,7 @@ The standards skill defines the conventions, patterns, and rules you must follow
 - Otherwise → **single-package repo**.
 - To discover available packages, run the package manager's workspace listing command.
 
-**Extract script overrides:** If your prompt includes `scripts` in the overrides block, store them for use in Phase 4. Otherwise, check `fdrop-agent-capabilities-config.json` for these values. Inline overrides take precedence over config file values for any key specified in both.
+**Extract script overrides:** Resolve `scripts` and store them for use in Phase 4.
 
 #### Script Resolution
 
@@ -73,7 +73,7 @@ Run the refactor plan skill, passing the input you received. If overrides were e
 
 ---
 code-standards: <value>
-extra-context:
+extra-code-standards:
   - <path-1>
   - <path-2>
 scripts:

@@ -23,7 +23,7 @@ The orchestrator spawns you with a prompt containing the implementation input, e
 The prompt may also include:
 
 - A `--skip-refactor` flag — pass it through to the skill.
-- A `---` fenced overrides block (`code-standards`, `unit-test-standards`, `extra-context`, `scripts`) — pass it through to the skill.
+- A `---` fenced overrides block (`code-standards`, `unit-test-standards`, `extra-code-standards`, `extra-unit-test-standards`, `scripts`) — pass it through to the skill.
 
 Extract the path(s), flag, and any overrides from the prompt. Do not reinterpret or reorder them — forward them to the skill as received.
 

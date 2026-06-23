@@ -24,23 +24,19 @@ In both modes, the plan is authoritative — do not reinterpret or second-guess 
 
 ### Phase 1: Load Skills
 
-Before doing anything else, load the standards skill and any extra context provided by the orchestrator.
+Before doing anything else, load the standards skill and any extra context. Resolve every override with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../docs/config.md) for the full field reference.
 
-The `fdrop-agent-capabilities-config.json` file referenced below (if present at the repository root) is a JSON object with these optional keys: `code-standards` (string — a skill name or file path), `extra-context` (array of strings — skill names or file paths), and `scripts` (object mapping the script keys in Phase 3 — `check`, `test-unit`, `check-all`, `test-unit-all` — to their full shell commands). Any key may be absent.
-
-**Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fdrop:code:standards`) loaded via the Skill tool, or a file path (e.g. `./references/standards.md`) loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
+**Code standards:** Resolve `code-standards` (a skill name loaded via the Skill tool, or a file path loaded via the Read tool); if unset, load the default:
 
 ```
 /fdrop:code:standards
 ```
 
-The standards skill defines the conventions, patterns, and rules you must follow when writing code. Follow its instructions for all subsequent phases.
+The standards skill defines the conventions, patterns, and rules you must follow when writing code. Follow its instructions for all subsequent phases. Confirm it returned content — empty output or an error is a hard failure: report it and terminate. If the loaded standards reference required skills or reading, load those as well.
 
-**Extra context:** If your prompt includes `extra-context` in the `---` overrides block, load each path (via the Skill tool for skills, or Read tool for file paths). If your prompt has no `extra-context` but `fdrop-agent-capabilities-config.json` exists and contains `extra-context`, load those paths. These provide additional repo-specific instructions that apply alongside the standards.
+**Extra code standards:** Resolve `extra-code-standards` (an array of skill names or file paths) and load each entry — additional repo-specific instructions that apply alongside the standards. Supplemental: if a load returns empty output or an error, note it in your report and continue.
 
-**Validate skill loading:** After the standards skill loads, confirm the output contains a "Required Skills" section.
-
-**Extract script overrides:** If your prompt includes `scripts` in the overrides block, store them for use in Phase 3. Otherwise, check `fdrop-agent-capabilities-config.json` for these values. Inline overrides take precedence over config file values for any key specified in both.
+**Extract script overrides:** Resolve `scripts` (keys `check`, `test-unit`, `check-all`, `test-unit-all`) and store them for use in Phase 3.
 
 ### Phase 2: Code
 

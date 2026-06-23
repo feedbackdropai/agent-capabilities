@@ -17,16 +17,7 @@ You will receive one of:
 
 ### Overrides (optional)
 
-The input may include a `---` fenced block with override keys:
-
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `code-standards` | `/fdrop:code:standards` | Skill name or file path loaded by refactor-executor for coding rules |
-| `unit-test-standards` | `/fdrop:code:tests:unit:jest` | Skill name or file path loaded by unit-test-writer (Step 3) for test conventions |
-| `extra-context` | (none) | Additional skills/docs loaded by refactor-executor before coding |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides. Inline `---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply.
+This skill passes through `code-standards`, `extra-code-standards`, `unit-test-standards`, `extra-unit-test-standards`, and `scripts`. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../../docs/config.md) for the full field reference. `extra-code-standards` rides along with the refactor-executor; `extra-unit-test-standards` with the unit-test-writer (Step 3).
 
 Extract these values early and pass them to the executor as described in Step 1.
 
@@ -115,7 +106,7 @@ Spawn `fdrop:agent:refactor-executor` as a **subagent** (via the Agent tool) wit
 ```
 ---
 code-standards: <value>
-extra-context:
+extra-code-standards:
   - <path-1>
   - <path-2>
 scripts:
@@ -148,7 +139,7 @@ The previous attempt returned an error. Here is the output:
 
 ---
 code-standards: <value>
-extra-context:
+extra-code-standards:
   - <path-1>
   - <path-2>
 scripts:

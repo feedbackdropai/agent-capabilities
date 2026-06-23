@@ -18,7 +18,7 @@ The orchestrator spawns you with a prompt containing one or two file paths:
 - **Overview plan** (optional) — high-level context for a phase, passed first
 - **Plan file** (required) — the plan to grade
 
-The prompt may also include a `---` fenced overrides block (`code-standards`, `extra-context`, `scripts`). Extract the path(s) and any overrides from the prompt. If only one path is present, there is no overview context.
+The prompt may also include a `---` fenced overrides block (`code-standards`, `extra-code-standards`, `scripts`). Extract the path(s) and any overrides from the prompt. If only one path is present, there is no overview context.
 
 ## Your Workflow
 
