@@ -20,15 +20,7 @@ One or two file paths: an optional overview plan and the plan to grade.
 
 ## Overrides (optional)
 
-The input may include a `---` fenced block with override keys:
-
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `code-standards` | `/fdrop:code:standards` | Skill name or file path loaded by the lint and gap-check agents for codebase conventions |
-| `extra-context` | (none) | Additional skills/docs loaded by the gap-check agent |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides. Inline `---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply.
+This skill passes through `code-standards`, `extra-code-standards`, and `scripts` to the lint and gap-check agents. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../../docs/config.md) for the full field reference.
 
 Extract these values early and pass them to the lint and gap-check agents as described in Steps 1 and 2.
 

@@ -59,16 +59,7 @@ The overview plan is never executed as a phase itself — it is only passed as c
 
 ### Overrides (optional)
 
-The input may include a `---` fenced block with override keys:
-
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `code-standards` | `/fdrop:code:standards` | Skill name or file path loaded by downstream agents for coding rules |
-| `unit-test-standards` | `/fdrop:code:tests:unit:jest` | Skill name or file path loaded by downstream agents for test convention |
-| `extra-context` | (none) | Additional skills/docs loaded by downstream agents |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides. Inline `---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply.
+This skill passes through `code-standards`, `extra-code-standards`, `unit-test-standards`, `extra-unit-test-standards`, and `scripts`. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../../docs/config.md) for the full field reference.
 
 Extract these values early and pass them to each `fdrop:agent:implement` spawn.
 
@@ -120,7 +111,7 @@ If overrides were extracted from the input, append them in both modes (only incl
 ---
 code-standards: <value>
 unit-test-standards: <value>
-extra-context:
+extra-code-standards:
   - <path-1>
   - <path-2>
 scripts:

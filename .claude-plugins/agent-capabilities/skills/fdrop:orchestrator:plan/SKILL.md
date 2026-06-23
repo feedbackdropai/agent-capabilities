@@ -22,15 +22,7 @@ Flags are appended after the input.
 
 ## Overrides (optional)
 
-The input may include a `---` fenced block with override keys:
-
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `code-standards` | `/fdrop:code:standards` | Skill name or file path passed to the plan-writer and grading agents for codebase conventions |
-| `extra-context` | (none) | Additional skills/docs passed to downstream agents |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides. Inline `---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply.
+This skill passes through `code-standards`, `extra-code-standards`, and `scripts` to the plan-writer and grading agents. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../../docs/config.md) for the full field reference.
 
 Extract these values early and pass them to downstream agents as described in Steps 4 and 5.
 
@@ -119,7 +111,7 @@ Read [plan-template.md](./references/plan-template.md). Spawn **one** `fdrop:age
 ```
 ---
 code-standards: <value>
-extra-context:
+extra-code-standards:
   - <path-1>
 scripts:
   check: <value>

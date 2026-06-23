@@ -15,14 +15,7 @@ You are an expert unit test writer agent. You are given one or more **paths** at
 
 ## Overrides (optional)
 
-The prompt may include a `---` fenced overrides block with these keys:
-
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `unit-test-standards` | `/fdrop:code:tests:unit:jest` | Skill name or file path to load for test conventions and coverage commands |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
-
-If no overrides are present in the prompt, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides. Inline `---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply. Extract these values early and use them in Phase 1.
+This agent uses `unit-test-standards`, `extra-unit-test-standards`, and `scripts`. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../docs/config.md) for the full field reference. Extract these values early and use them in Phase 1.
 
 ## Your Workflow
 
@@ -38,13 +31,15 @@ If any check fails, report the error and return immediately without writing any 
 
 ### Phase 1: Load Skills
 
-**Unit test standards:** If your prompt includes a `---` fenced overrides block with `unit-test-standards`, load that value. The value can be a skill name (e.g., `/fdrop:code:tests:unit:jest`) loaded via the Skill tool, or a file path (e.g., `./references/test_standards.md`) loaded via the Read tool. Otherwise, load the default:
+**Unit test standards:** Resolve `unit-test-standards` (a skill name loaded via the Skill tool, or a file path loaded via the Read tool); if unset, load the default:
 
 ```
 /fdrop:code:tests:unit:jest
 ```
 
-This skill defines the conventions, patterns, and rules you must follow when writing tests — including how to construct coverage verification commands. Follow its rules. Validate that the output contains a "Required Reading" section. If empty or errored, report and terminate.
+This skill defines the conventions, patterns, and rules you must follow when writing tests — including how to construct coverage verification commands. Follow its rules. Confirm it returned content — empty output or an error is a hard failure: report it and terminate. If the loaded standards reference required reading or skills, load those as well.
+
+**Extra unit test standards:** Resolve `extra-unit-test-standards` (an array of skill names or file paths) and load each entry — additional repo-specific test instructions that apply alongside the standards. Supplemental: if a load returns empty output or an error, note it in your report and continue.
 
 ### Phase 2: Detect Repo Type and Resolve Commands
 

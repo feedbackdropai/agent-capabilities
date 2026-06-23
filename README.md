@@ -96,10 +96,11 @@ Any skill or agent that accepts overrides can receive a `---` fenced block appen
 
 ---
 code-standards: /<namespace>:code:standards
+extra-code-standards:
+  - /<namespace>:code:architecture
 unit-test-standards: /<namespace>:code:tests:unit:jest
-extra-context:
-  - /<namespace>:code:build
-  - /<namespace>:code:safety
+extra-unit-test-standards:
+  - /<namespace>:code:tests:integration
 scripts:
   check: pnpm --filter {package} typecheck
   test-unit: pnpm --filter {package} test
@@ -109,8 +110,9 @@ scripts:
 | Key | Default | Purpose |
 | --- | --- | --- |
 | `code-standards` | `/fdrop:code:standards` | Replaces the default coding standards (skill name or file path) |
+| `extra-code-standards` | (none) | Additional skills/docs loaded alongside `code-standards`, wherever it loads |
 | `unit-test-standards` | `/fdrop:code:tests:unit:jest` | Replaces the default unit test conventions (skill name or file path) |
-| `extra-context` | (none) | Additional skills or docs loaded alongside standards |
+| `extra-unit-test-standards` | (none) | Additional skills/docs loaded alongside `unit-test-standards`, wherever it loads |
 | `scripts` | (see defaults below) | Map of script key → full command to run. Use `{package}` placeholder for monorepo package name (omit for single-package repos) |
 
 **Default scripts** (when not overridden):
@@ -123,8 +125,9 @@ scripts:
 | `format-write` | `pnpm format:write` / `pnpm --filter {package} format:write` |
 | `check-all` | `pnpm test:check:all` |
 | `test-unit-all` | `pnpm test:unit:all` |
+| `build` | *opt-in — no default; runs as a post-change gate only when you set it* |
 
-When no `scripts` override is provided, the agent detects the package manager from the lockfile and repo type from the directory structure, then constructs commands automatically.
+When no `scripts` override is provided, the agent detects the package manager from the lockfile and repo type from the directory structure, then constructs commands automatically. The exception is `build`: it is **never** auto-detected and runs only when you explicitly set it — so if your environment builds automatically (e.g. a dev server that rebuilds on change), simply omit `build` and the agents skip it.
 
 Omit the block entirely to use defaults (auto-detected from repo).
 
@@ -135,13 +138,17 @@ As an alternative to inline `---` blocks, you can place an `fdrop-agent-capabili
 ```json
 {
   "code-standards": "/<namespace>:code:standards",
-  "unit-test-standards": "/<namespace>:code:tests:unit:jest",
-  "extra-context": [
-    "/<namespace>:code:build",
+  "extra-code-standards": [
+    "/<namespace>:code:architecture",
     "/<namespace>:code:safety"
+  ],
+  "unit-test-standards": "/<namespace>:code:tests:unit:jest",
+  "extra-unit-test-standards": [
+    "/<namespace>:code:tests:integration"
   ],
   "scripts": {
     "check": "pnpm --filter {package} typecheck",
+    "build": "pnpm --filter {package} build",
     "test-unit": "pnpm --filter {package} test",
     "test-unit-coverage": "pnpm --filter {package} test:coverage",
     "format-write": "pnpm --filter {package} format:write",
@@ -151,7 +158,9 @@ As an alternative to inline `---` blocks, you can place an `fdrop-agent-capabili
 }
 ```
 
-All keys are optional — include only those you want to override.
+All keys are optional — include only those you want to override. `extra-code-standards` and `extra-unit-test-standards` are additive: they load **alongside** their base standard (wherever it loads) rather than replacing it. To replace a default, set the base field (`code-standards` / `unit-test-standards`).
+
+**Full field reference:** [`.claude-plugins/agent-capabilities/docs/config.md`](./.claude-plugins/agent-capabilities/docs/config.md) — the single source of truth for fields, types, defaults, and precedence.
 
 **Precedence** (highest wins):
 
@@ -183,10 +192,11 @@ description: Implement a feature with <repo-name> standards enforced.
 
 ---
 code-standards: /<namespace>:code:standards
+extra-code-standards:
+  - /<namespace>:code:architecture
 unit-test-standards: /<namespace>:code:tests:unit:jest
-extra-context:
-  - /<namespace>:code:build
-  - /<namespace>:code:safety
+extra-unit-test-standards:
+  - /<namespace>:code:tests:integration
 scripts:
   check: pnpm --filter {package} typecheck
   test-unit: pnpm --filter {package} test

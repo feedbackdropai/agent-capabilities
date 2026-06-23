@@ -23,14 +23,7 @@ If no overview is provided, only the `Plan:` line will be present — check the 
 
 ## Overrides (optional)
 
-The input may include a `---` fenced block with override keys:
-
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `code-standards` | `/fdrop:code:standards` | Skill name or file path to load for codebase conventions |
-| `extra-context` | (none) | Additional skills/docs to load for context |
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values. Inline `---` blocks take precedence. If neither is present, defaults apply.
+This skill uses `code-standards` and `extra-code-standards`. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../../docs/config.md) for the full field reference.
 
 ## Instructions
 
@@ -44,7 +37,7 @@ Read the plan file. If an overview was provided, read it for design decisions, f
 
 ### Step 2: Load Context
 
-Load the `code-standards` skill/file (default `/fdrop:code:standards`) and any `extra-context`. The implementing agent loads these too — anything they already supply is **not** a gap unless the plan contradicts them.
+Load the `code-standards` skill/file (default `/fdrop:code:standards`) and any `extra-code-standards`. The implementing agent loads these too — anything they already supply is **not** a gap unless the plan contradicts them.
 
 ### Step 3: Check for Decision-Level Gaps
 

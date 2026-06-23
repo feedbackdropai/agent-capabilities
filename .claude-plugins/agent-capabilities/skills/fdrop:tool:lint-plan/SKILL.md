@@ -23,14 +23,7 @@ If no overview is provided, only the `Plan:` line will be present — lint the p
 
 ## Overrides (optional)
 
-The input may include a `---` fenced block with override keys:
-
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `code-standards` | `/fdrop:code:standards` | Skill name or file path to load for naming conventions and the style guide |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values. Inline `---` blocks take precedence. If neither is present, defaults apply.
+This skill uses `code-standards`, `extra-code-standards`, and `scripts`. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../../docs/config.md) for the full field reference.
 
 ## Instructions
 

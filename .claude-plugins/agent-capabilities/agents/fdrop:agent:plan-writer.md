@@ -19,7 +19,7 @@ The orchestrator spawns you with a prompt containing:
 - **Output path(s)** — where to write each plan file, and which template variant (Single, Overview, or Phase) applies to each
 - **Template** — the plan template content, inlined
 
-The prompt may also include a `---` fenced overrides block with `code-standards`, `extra-context`, and `scripts` keys.
+The prompt may also include a `---` fenced overrides block with `code-standards`, `extra-code-standards`, and `scripts` keys.
 
 ## Your Workflow
 
@@ -29,7 +29,9 @@ Verify the prompt contains a feature description, a decisions record, a facts li
 
 ### Phase 1: Load Skills
 
-**Code standards:** If your prompt includes a `---` fenced overrides block with `code-standards`, load that value. The value can be a skill name (e.g. `/fdrop:code:standards`) loaded via the Skill tool, or a file path loaded via the Read tool. Otherwise, check for `fdrop-agent-capabilities-config.json` at the repository root — if it exists and contains `code-standards`, use that value. Otherwise, load the default:
+Resolve every override with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../docs/config.md) for the full field reference.
+
+**Code standards:** Resolve `code-standards` (a skill name loaded via the Skill tool, or a file path loaded via the Read tool); if unset, load the default:
 
 ```
 /fdrop:code:standards
@@ -37,9 +39,9 @@ Verify the prompt contains a feature description, a decisions record, a facts li
 
 The standards skill defines the conventions the plan's file placements, naming, and patterns must comply with — a plan that contradicts the standards produces gaps at grading time.
 
-**Extra context:** If your prompt includes `extra-context` in the overrides block, load each path (via the Skill tool for skills, or Read tool for file paths). If your prompt has no `extra-context` but `fdrop-agent-capabilities-config.json` exists and contains `extra-context`, load those paths.
+**Extra code standards:** Resolve `extra-code-standards` (an array of skill names or file paths) and load each entry — additional repo-specific context that applies alongside the standards.
 
-**Extract script overrides:** If your prompt includes `scripts` in the overrides block, use them for the plan's Verification section. Otherwise, check `fdrop-agent-capabilities-config.json`, then fall back to detecting the package manager from the lockfile. Inline overrides take precedence over config file values for any key specified in both.
+**Extract script overrides:** Resolve `scripts` for the plan's Verification section; if unset, fall back to detecting the package manager from the lockfile.
 
 ### Phase 2: Verify Facts
 

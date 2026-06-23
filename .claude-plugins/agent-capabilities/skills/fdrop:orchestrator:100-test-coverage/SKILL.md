@@ -16,16 +16,9 @@ You are a coverage orchestrator. Your job is to drive a package to 100% unit tes
 
 ## Overrides (optional)
 
-The input may include a `---` fenced block with override keys:
+This skill uses `unit-test-standards`, `extra-unit-test-standards`, and `scripts`. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../../docs/config.md) for the full field reference.
 
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `unit-test-standards` | `/fdrop:code:tests:unit:jest` | Skill name or file path for test conventions and coverage commands |
-| `scripts` | (auto-detected) | Map of script key → full command (use `{package}` placeholder for monorepo) |
-
-If no overrides block is present, check for `fdrop-agent-capabilities-config.json` at the repository root. If it exists, read it and use its values as overrides. Input `---` blocks take precedence over config file values for any key specified in both. If neither is present, all defaults apply.
-
-Extract these values early. Load the `unit-test-standards` skill (or file path) so you understand the coverage command patterns when constructing verification commands in Steps 1 and 4. Pass overrides to the test-writer agents as described in Step 3.
+Extract these values early. Load the `unit-test-standards` skill (or file path) — and any `extra-unit-test-standards` — so you understand the coverage command patterns when constructing verification commands in Steps 1 and 4. Pass overrides to the test-writer agents as described in Step 3.
 
 ### Script Resolution
 

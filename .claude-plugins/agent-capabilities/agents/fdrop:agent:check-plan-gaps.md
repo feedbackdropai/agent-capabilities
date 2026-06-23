@@ -18,7 +18,7 @@ The orchestrator spawns you with a prompt containing one or two file paths:
 - **Overview plan** (optional) — design context, passed first
 - **Plan file** (required) — the plan to check
 
-The prompt may also include a `---` fenced overrides block (`code-standards`, `extra-context`). Extract the path(s) and any overrides from the prompt. If only a `Plan:` line is present, no overview is available.
+The prompt may also include a `---` fenced overrides block (`code-standards`, `extra-code-standards`). Extract the path(s) and any overrides from the prompt. If only a `Plan:` line is present, no overview is available.
 
 ## Your Workflow
 
