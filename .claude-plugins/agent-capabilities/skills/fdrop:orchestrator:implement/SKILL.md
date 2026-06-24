@@ -279,6 +279,8 @@ Produce a consolidated summary of the entire implementation:
 
 If any step failed or was skipped, use ❌ and include the error summary for that row.
 
+If any subagent reported friction this run, add a final line pointing the maintainer at the captured log: `Friction notes: see .fdrop/runs/<session-id>.md` (the friction-protocol hook writes it automatically; do not author it yourself).
+
 ## Rules
 
 - Each agent spawn **must** be a new Agent tool call (fresh context).

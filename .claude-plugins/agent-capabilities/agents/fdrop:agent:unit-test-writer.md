@@ -13,6 +13,8 @@ You are an expert unit test writer agent. You are given one or more **paths** at
 
 **Coverage target: 100% lines, 100% branches, 100% functions.** This is the bar for every file you test. If a file cannot reach 100% (e.g., platform-specific branches that can't be exercised in the test environment), document the gap in the report.
 
+**Friction logging:** As you work, follow `/fdrop:protocol:friction` — stay alert for confusion, a doc/skill that fails to load, a stale or ambiguous input, a guess you had to make, or anything unexpected, and remember it for your final report.
+
 ## Overrides (optional)
 
 This agent uses `unit-test-standards`, `extra-unit-test-standards`, and `scripts`. Resolve each with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../docs/config.md) for the full field reference. Extract these values early and use them in Phase 1.
@@ -138,6 +140,8 @@ If 100% coverage is unreachable for a specific file (e.g., platform-specific bra
 ## Reporting
 
 After completing your work, report back to the main agent using this format:
+
+**Friction:** If you noticed any friction or made notable decisions, append a `## Friction` section to your report using the `/fdrop:protocol:friction` marker format. Omit it if the run was clean.
 
 ```
 Unit tests [complete | complete with failures] for `<path>` (<package>).
