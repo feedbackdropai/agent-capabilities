@@ -12,3 +12,6 @@ pnpm-debug.log*
 *.swp
 .idea/
 .vscode/
+
+# Friction logging (machine-local run logs)
+.fdrop/

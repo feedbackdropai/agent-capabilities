@@ -222,6 +222,8 @@ Skills are invoked via `/`, agents via `@`. Context skills have no input — the
 | `fdrop:code:standards` | Standards aggregator (architecture + style-guide + documentation) | - | |
 | `fdrop:code:style-guide` | Code style requirements | - | |
 | `fdrop:code:tests:unit:jest` | Unit test requirements (jest) | - | |
+| **Protocols** | | | |
+| `fdrop:protocol:friction` | Contract for logging friction/decisions during a run; a plugin hook scrapes the markers to `.fdrop/runs/` | - | |
 | **Orchestrators** | | | |
 | `fdrop:orchestrator:plan` | Builds an A-grade plan: explore → elicit → draft → grill → grade | `<feature-or-notes>` | ✅ |
 | `fdrop:orchestrator:implement` | Spawns build → test → refactor agents sequentially | `<plan-file>` | ✅ |
@@ -264,6 +266,7 @@ Skills live in `.claude-plugins/agent-capabilities/skills/` and each skill is a 
 Common categories:
 
 - `fdrop:code:<name>` — coding standards, feature implementation, and testing
+- `fdrop:protocol:<name>` — shared runtime contracts every agent obeys (e.g. friction logging)
 - `fdrop:tool:<name>` — utilities for skill/agent authoring and tooling
 - `fdrop:task:<name>` — actionable tasks that produce an output or perform a workflow step
 - `fdrop:orchestrator:<name>` — orchestration skills that coordinate subagents to complete multi-step workflows
