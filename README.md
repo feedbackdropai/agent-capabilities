@@ -176,7 +176,7 @@ The main design goal: consuming repos create thin wrapper skills that inject the
 
 Example — `my-repo/.claude/skills/<namespace>:task:feature/SKILL.md`:
 
-```markdown
+````markdown
 ---
 name: <namespace>:task:feature
 description: Implement a feature with <repo-name> standards enforced.
@@ -204,7 +204,7 @@ scripts:
 ```
 
 Do not modify user's input. Only append overrides block and delegate.
-```
+````
 
 The wrapper skill is ~10 lines. All implementation, test writing, and refactoring logic stays upstream in `feedbackdropai/agent-capabilities` and updates automatically.
 
