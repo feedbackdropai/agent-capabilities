@@ -32,7 +32,7 @@ Before doing anything else, load the standards skill and any extra context. Reso
 /fdrop:code:standards
 ```
 
-The standards skill defines the conventions, patterns, and rules you must follow when writing code. Follow its instructions for all subsequent phases. Confirm it returned content — empty output or an error is a hard failure: report it and terminate. **The standards skill is an index, not the rules themselves — when it links or references other skills, docs, or required reading, you must fully read every one of them. The linked docs are the source of truth; reading only the index and inferring the rules from doc titles is a failure.** Load and read them all before writing any code.
+The standards skill defines the conventions, patterns, and rules you must follow when writing code. Follow its instructions for all subsequent phases — including its Required Reading mandate: load and fully read every doc it links (the linked docs are the source of truth, not the index) before writing any code. Confirm it returned content — empty output or an error is a hard failure: report it and terminate.
 
 **Extra code standards:** Resolve `extra-code-standards` (an array of skill names or file paths) and load each entry — additional repo-specific instructions that apply alongside the standards. Supplemental: if a load returns empty output or an error, note it in your report and continue.
 
@@ -46,7 +46,7 @@ Implement the feature described in the task prompt, following all instructions f
 
 - **Re-read the plan** if one was provided as a file path — do not rely on earlier context alone, as conversation compaction may have dropped details.
 - **Before modifying any file, read it first** to understand its current state. When multiple files need reading and they are independent, read them in parallel.
-- State which specific rules from the required skills apply to this task (the skill mandates this).
+- Keep the loaded standards in view as you code — every rule they define applies, not a remembered subset.
 - Implement the feature completely — do not leave partial or stubbed-out code.
 - Preserve existing functionality unless the task explicitly requires changing behavior.
 - Follow the style, architecture, and documentation rules referenced by the standards skill's required skills.

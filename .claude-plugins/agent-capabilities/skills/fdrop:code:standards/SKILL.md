@@ -24,7 +24,7 @@ When rules conflict, apply them in this order (highest wins):
 
 ## Required Reading — Mandatory
 
-**Always load and fully read the child skills below — first, before you do anything else, no exceptions.** **Each is an index, not the rules themselves** — it links out to specific reference docs (for example, `style-guide` links `patterns/functions.md`, `patterns/classes.md`, and more). You must descend into every linked doc and read it in full. The leaf docs are the source of truth; the index only points to them. **Loading a skill and inferring its rules from the doc titles — without opening the docs — is a failure, not a shortcut.**
+**Always load and fully read the child skills below — first, before you do anything else, no exceptions.** Each is an index, not the rules themselves — it links out to specific reference docs (for example, `style-guide` links `patterns/functions.md`, `patterns/classes.md`, and more). You must descend into every linked doc and read it in full. The leaf docs are the source of truth; the index only points to them. **Loading a skill and inferring its rules from the doc titles — without opening the docs — is a failure, not a shortcut.**
 
 - Load `/fdrop:code:architecture` — shared architecture rules plus package-specific rules loaded conditionally based on which package(s) you are working in.
 - Load `/fdrop:code:style-guide` — function/class patterns, import/export rules, named-constant rules, and TypeScript rules.

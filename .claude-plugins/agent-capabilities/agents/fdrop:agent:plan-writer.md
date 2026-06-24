@@ -37,7 +37,7 @@ Resolve every override with precedence **inline `---` block > `fdrop-agent-capab
 /fdrop:code:standards
 ```
 
-The standards skill defines the conventions the plan's file placements, naming, signatures, and patterns must comply with — a plan that contradicts the standards produces gaps at grading time. **The standards skill is an index, not the rules themselves — when it links other skills, docs, or required reading, you must fully read every one. The linked docs are the source of truth; reading only the index and inferring rules from doc titles is a failure.** Load and read them all before writing the plan.
+The standards skill defines the conventions the plan's file placements, naming, signatures, and patterns must comply with — a plan that contradicts the standards produces gaps at grading time. Follow its Required Reading mandate: load and fully read every doc it links (the linked docs are the source of truth, not the index) before writing the plan.
 
 **Extra code standards:** Resolve `extra-code-standards` (an array of skill names or file paths) and load each entry — additional repo-specific context that applies alongside the standards.
 

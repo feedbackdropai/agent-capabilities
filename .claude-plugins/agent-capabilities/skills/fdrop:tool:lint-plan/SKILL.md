@@ -33,7 +33,7 @@ Read the plan file (and the overview, if provided, for context only — lint onl
 
 ### Step 2: Load Conventions
 
-Load the `code-standards` skill/file (default `/fdrop:code:standards`). **This is mandatory — you cannot check conformance against rules you have not read.** The skill is an index, not the rules themselves: you must fully read every doc it links. The linked docs are the source of truth; reading only the index and inferring rules from doc titles is a failure. Load and read them all before running the checks below.
+Load the `code-standards` skill/file (default `/fdrop:code:standards`) and follow its Required Reading mandate — load and fully read every doc it links (the linked docs are the source of truth, not the index) before running the checks below. **This is mandatory: you cannot check conformance against rules you have not read.**
 
 ### Step 3: Run the Structural Checks
 
