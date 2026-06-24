@@ -32,11 +32,11 @@ Before doing anything else, load the standards skill and any extra context. Reso
 /fdrop:code:standards
 ```
 
-The standards skill defines the conventions, patterns, and rules you must follow when writing code. Follow its instructions for all subsequent phases. Confirm it returned content — empty output or an error is a hard failure: report it and terminate. If the loaded standards reference required skills or reading, load those as well.
+The standards skill defines the conventions, patterns, and rules you must follow when writing code. Follow its instructions for all subsequent phases — including its Required Reading mandate: load and fully read every doc it links (the linked docs are the source of truth, not the index) before writing any code. Confirm it returned content — empty output or an error is a hard failure: report it and terminate.
 
 **Extra code standards:** Resolve `extra-code-standards` (an array of skill names or file paths) and load each entry — additional repo-specific instructions that apply alongside the standards. Supplemental: if a load returns empty output or an error, note it in your report and continue.
 
-**Extract script overrides:** Resolve `scripts` (keys `check`, `test-unit`, `check-all`, `test-unit-all`, and the opt-in `build`) and store them for use in Phase 3.
+**Extract script overrides:** Resolve `scripts` (keys `check`, `test-unit`, `check-all`, `test-unit-all`, and the opt-in `build`) and store them for use in Phase 4.
 
 ### Phase 2: Code
 
@@ -46,18 +46,30 @@ Implement the feature described in the task prompt, following all instructions f
 
 - **Re-read the plan** if one was provided as a file path — do not rely on earlier context alone, as conversation compaction may have dropped details.
 - **Before modifying any file, read it first** to understand its current state. When multiple files need reading and they are independent, read them in parallel.
-- State which specific rules from the required skills apply to this task (the skill mandates this).
+- Keep the loaded standards in view as you code — every rule they define applies, not a remembered subset.
 - Implement the feature completely — do not leave partial or stubbed-out code.
 - Preserve existing functionality unless the task explicitly requires changing behavior.
 - Follow the style, architecture, and documentation rules referenced by the standards skill's required skills.
 
-**Track all source files you create or modify** — you will need this list for Phases 3–4. Do not include test files, barrel files (`index.ts` re-exports), or type-only files in this list.
+**Track all source files you create or modify** — you will need this list for Phases 3–5. Do not include test files, barrel files (`index.ts` re-exports), or type-only files in this list.
 
 ---
 
-### Phase 3: Verify (all packages)
+### Phase 3: Standards Conformance Self-Review
 
-Determine which package each tracked file belongs to by checking if it lives under `packages/<name>/...`. Group the tracked files by package — Phases 3–4 run independently **per package**. If the feature only touches one package, there is only one group.
+This phase is a dedicated pass with one job: make the code match the standards **before** verification. It is mandatory — do not skip it.
+
+1. **Re-read the standards, fresh.** Re-read the standards skill you loaded in Phase 1 **and every doc it links** — the linked docs are the source of truth, not the index that points to them. Do not rely on your Phase 2 memory of the rules; load them back into context now.
+2. **Check every changed file against every rule.** For each source file you created or modified in Phase 2, verify it against the rules in those docs — the full set, not a remembered subset. The docs are the checklist; a rule you do not recall is still a rule you must apply.
+3. **Fix every deviation in source** before proceeding.
+
+Do not proceed to Phase 4 while any changed file still violates a loaded rule.
+
+---
+
+### Phase 4: Verify (all packages)
+
+Determine which package each tracked file belongs to by checking if it lives under `packages/<name>/...`. Group the tracked files by package — Phases 4–5 run independently **per package**. If the feature only touches one package, there is only one group.
 
 #### Script Resolution
 
@@ -93,9 +105,9 @@ Collect all results before proceeding.
 
 ---
 
-### Phase 4: Self-Heal (only if verify failed)
+### Phase 5: Self-Heal (only if verify failed)
 
-If Phase 3 produced type-check, test, or build failures for any package, fix the failures:
+If Phase 4 produced type-check, test, or build failures for any package, fix the failures:
 
 1. Read the error output.
 2. **Triage first:** Determine whether the failure was introduced by your changes or is pre-existing. Run `git stash && <failing command> && git stash pop` if needed to confirm. If a failure is pre-existing but blocks your package from passing, fix it — the contract is "leave it green." If a failure is pre-existing and in an unrelated package you did not touch, document it in your report and do not spend self-heal attempts on it.
@@ -166,7 +178,7 @@ The `Files changed` section must list every source file, grouped by package, wit
 - Implement only what the feature request describes — do not add unrequested functionality.
 - Do not modify files outside the scope of the feature.
 - Do not delete existing tests. If an existing test fails because your feature **intentionally** changed behavior, you may update it to match the new behavior the plan specifies — but first **load `unit-test-standards`** (the override if provided, otherwise the `/fdrop:code:tests:unit:jest` default) so your edits follow the project's test conventions, and list each test you touch in your report. Do **not** weaken or delete an assertion to paper over an unexpected failure: if a test fails for any reason other than the plan's intended behavior change, fix the source instead.
-- Pre-existing failures are handled per the triage rule in Phase 4 step 2: fix them only when they block a package you touched; document (do not fix) failures in unrelated packages.
+- Pre-existing failures are handled per the triage rule in Phase 5 step 2: fix them only when they block a package you touched; document (do not fix) failures in unrelated packages.
 - Do not write tests. Report changed files so the orchestrating agent can delegate test-writing as a separate step.
 - Do not create commits, branches, or push. Work on the current branch; a downstream agent handles git operations.
 - Respect all instructions in the project's CLAUDE.md files. These override default behavior.

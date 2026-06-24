@@ -33,7 +33,7 @@ Read the plan file (and the overview, if provided, for context only — lint onl
 
 ### Step 2: Load Conventions
 
-Load the `code-standards` skill/file (default `/fdrop:code:standards`) for the target package's file-naming conventions and style guide.
+Load the `code-standards` skill/file (default `/fdrop:code:standards`) and follow its Required Reading mandate — load and fully read every doc it links (the linked docs are the source of truth, not the index) before running the checks below. **This is mandatory: you cannot check conformance against rules you have not read.**
 
 ### Step 3: Run the Structural Checks
 
@@ -47,7 +47,17 @@ Each check is verifiable against the filesystem or the plan text. Flag a check o
 - **Scope within guardrail** — the count of source files to create/modify (excluding tests, barrels, type-only files) is **≤ 50** (`fdrop:agent:feature-executor`'s limit).
 - **Packages identifiable** — affected packages are derivable from the file paths (monorepo: under `packages/<name>/...`).
 
-### Step 4: Report
+### Step 4: Standards Conformance Check
+
+This step has one job: catch any plan content that contradicts the code standards. The checks above verify scaffolding; this verifies the conventions the specified code must follow. It is core to linting — do not skip it.
+
+1. **Read the standards, fully.** The `code-standards` skill loaded in Step 2 **and every doc it links** — the linked docs are the source of truth, not the index that points to them.
+2. **Check the specified code against every rule.** Verify the code the plan specifies against the rules in those docs — the full set, not a remembered subset. The docs are the checklist; a rule you do not recall is still a rule you must apply.
+3. **Flag every deterministic contradiction** (one with a determinable fix) as an issue in the report. Leave anything requiring judgment about what the content *should be* to check-plan-gaps.
+
+Do not report `CLEAN` while the plan specifies code that mechanically contradicts a loaded rule.
+
+### Step 5: Report
 
 ```
 PLAN_LINT: <CLEAN | ISSUES>

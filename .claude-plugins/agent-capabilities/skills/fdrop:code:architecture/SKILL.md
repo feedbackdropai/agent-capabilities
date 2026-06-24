@@ -14,6 +14,8 @@ Follow the rules in the linked docs — they're requirements, not suggestions. C
 
 ## Required Reading
 
+The rules live in the docs below — not on this page. **Always load and read every doc that applies to your task, in full, before you do anything else:** all Shared docs always, plus the Framework and Package-Specific docs for the package(s) you are touching. Reading only this index page, or inferring rules from the doc titles, is a failure, not a shortcut. Every rule in the docs you read is binding — apply the full set, not the subset you remember. If any doc fails to load or returns empty, stop and report; never proceed on partial standards.
+
 ### Shared (always read)
 
 - [folder-structure.md](./references/folder-structure.md) – Monorepo folder organization, `common/` pattern, domain folders
