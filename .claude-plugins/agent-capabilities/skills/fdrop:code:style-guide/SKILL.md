@@ -10,7 +10,7 @@ Follow the rules in the linked docs — they're requirements, not suggestions. C
 
 ## Required Reading
 
-Before writing any code, read these documents:
+The rules live in the docs below — not on this page. **Always load and read every one of them, in full, before you do anything else.** Reading only this index page, or inferring rules from the doc titles, is a failure, not a shortcut. Every rule in these docs is binding — apply the full set, not the subset you remember. If any doc fails to load or returns empty, stop and report; never proceed on partial standards.
 
 Conventions ([`conventions/`](./references/conventions/)):
 
