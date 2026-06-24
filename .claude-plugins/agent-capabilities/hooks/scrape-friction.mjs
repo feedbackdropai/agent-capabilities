@@ -10,9 +10,18 @@
 
 import { readFileSync, existsSync, mkdirSync, appendFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Matches a single marker line: FRICTION[target]: note  /  DECISION[target]: note
-const MARKER = /\b(FRICTION|DECISION)\[([^\]]+)\]:[ \t]*(.+)/;
+// A marker line: optional list/quote prefix, then FRICTION[target]: note (line-anchored).
+const LINE_MARKER = /^[ \t]*(?:[-*>][ \t]+)?(FRICTION|DECISION)\[([^\]]+)\]:[ \t]*(.+)$/;
+// Loose form — matches a marker anywhere in a line. Used only to re-parse the
+// run file (whose lines look like "- [agent] FRICTION[...]: ...") for dedup.
+const LOOSE_MARKER = /(FRICTION|DECISION)\[([^\]]+)\]:[ \t]*(.+)$/;
+// A markdown heading whose title is exactly "Friction" (the section the
+// friction protocol mandates). Not "Friction Protocol", not inline mentions.
+const FRICTION_HEADING = /^[ \t]{0,3}#{1,6}[ \t]+Friction[ \t]*$/i;
+// Any markdown heading — ends the current section.
+const ANY_HEADING = /^[ \t]{0,3}#{1,6}[ \t]+/;
 
 /** Read all of stdin as a string. */
 function readStdin() {
@@ -34,16 +43,47 @@ function collectStrings(node, out) {
   }
 }
 
-/** Extract canonical marker strings ("FRICTION[target]: note") from free text. */
-function extractMarkers(text) {
+function toMarker(m) {
+  const type = m[1];
+  const target = m[2].trim();
+  const note = m[3].trim();
+  if (!note) return null;
+  return { type, target, note, canonical: `${type}[${target}]: ${note}` };
+}
+
+/**
+ * Extract markers an agent emitted in its report. Markers count ONLY when they
+ * sit under a `## Friction` heading (per the friction protocol's placement
+ * rule). This deliberately ignores the protocol skill's own example markers and
+ * any agent-def references, which the transcript carries verbatim but which live
+ * under other headings — they must not be scraped as real friction.
+ */
+function extractReportMarkers(text) {
+  const found = [];
+  let inSection = false;
+  for (const rawLine of text.split("\n")) {
+    if (ANY_HEADING.test(rawLine)) {
+      inSection = FRICTION_HEADING.test(rawLine);
+      continue;
+    }
+    if (!inSection) continue;
+    const m = LINE_MARKER.exec(rawLine);
+    if (m) {
+      const marker = toMarker(m);
+      if (marker) found.push(marker);
+    }
+  }
+  return found;
+}
+
+/** Re-parse the existing run file (a flat list of marker lines) for dedup. */
+function extractLogMarkers(text) {
   const found = [];
   for (const rawLine of text.split("\n")) {
-    const m = MARKER.exec(rawLine);
+    const m = LOOSE_MARKER.exec(rawLine);
     if (m) {
-      const type = m[1];
-      const target = m[2].trim();
-      const note = m[3].trim();
-      if (note) found.push({ type, target, note, canonical: `${type}[${target}]: ${note}` });
+      const marker = toMarker(m);
+      if (marker) found.push(marker);
     }
   }
   return found;
@@ -76,7 +116,7 @@ function main() {
     }
     const strings = [];
     collectStrings(obj, strings);
-    for (const s of strings) markers.push(...extractMarkers(s));
+    for (const s of strings) markers.push(...extractReportMarkers(s));
   }
   if (markers.length === 0) return;
 
@@ -89,7 +129,7 @@ function main() {
   // Dedup against markers already written.
   let existing = "";
   if (existsSync(runFile)) existing = readFileSync(runFile, "utf8");
-  const seen = new Set(extractMarkers(existing).map((m) => m.canonical));
+  const seen = new Set(extractLogMarkers(existing).map((m) => m.canonical));
 
   const fresh = [];
   for (const m of markers) {
@@ -109,9 +149,15 @@ function main() {
   appendFileSync(runFile, lines);
 }
 
-try {
-  main();
-} catch {
-  // Never block the agent on a logging failure.
+// Run only when invoked directly as a hook — importing for tests must not fire main().
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isMain) {
+  try {
+    main();
+  } catch {
+    // Never block the agent on a logging failure.
+  }
+  process.exit(0);
 }
-process.exit(0);
+
+export { extractReportMarkers, extractLogMarkers, collectStrings };
