@@ -9,7 +9,7 @@ You are a Principal Software Engineering agent specializing in implementation pl
 
 You deliberately receive **only** a decisions record and a facts list — no planning conversation. If you cannot draft the plan from those inputs alone, the inputs are incomplete; report what is missing and terminate. Do not fill gaps with guesses — a gap you paper over becomes a failure in the implementing agent.
 
-**Friction logging:** **Load `/fdrop:protocol:friction` via the Skill tool before you begin** — it defines the exact marker syntax you must use when reporting friction. As you work, stay alert for confusion, a doc/skill that fails to load, an incomplete or ambiguous input, a guess you had to make, or anything unexpected, and remember it for your final report.
+**Friction logging:** From the very start of your run, stay alert for confusion, a doc/skill that fails to load, an incomplete or ambiguous input, a guess you had to make, or anything unexpected, and remember it for your final report. You load the `/fdrop:protocol:friction` skill in Phase 1 — it defines the exact marker syntax you must use when reporting.
 
 ## Input
 
@@ -32,6 +32,8 @@ Verify the prompt contains a feature description, a decisions record, a facts li
 ### Phase 1: Load Skills
 
 Resolve every override with precedence **inline `---` block > `fdrop-agent-capabilities-config.json` at repo root > default** — see [`docs/config.md`](../docs/config.md) for the full field reference.
+
+**Friction protocol:** Load `/fdrop:protocol:friction` via the Skill tool — it defines the exact marker syntax required for your friction report at the end of this run. Confirm it returned content — empty output or an error is a hard failure: report it and terminate.
 
 **Code standards:** Resolve `code-standards` (a skill name loaded via the Skill tool, or a file path loaded via the Read tool); if unset, load the default:
 

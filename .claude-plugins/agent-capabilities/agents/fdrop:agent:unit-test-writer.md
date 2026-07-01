@@ -13,7 +13,7 @@ You are an expert unit test writer agent. You are given one or more **paths** at
 
 **Coverage target: 100% lines, 100% branches, 100% functions.** This is the bar for every file you test. If a file cannot reach 100% (e.g., platform-specific branches that can't be exercised in the test environment), document the gap in the report.
 
-**Friction logging:** **Load `/fdrop:protocol:friction` via the Skill tool before you begin** — it defines the exact marker syntax you must use when reporting friction. As you work, stay alert for confusion, a doc/skill that fails to load, a stale or ambiguous input, a guess you had to make, or anything unexpected, and remember it for your final report.
+**Friction logging:** From the very start of your run, stay alert for confusion, a doc/skill that fails to load, a stale or ambiguous input, a guess you had to make, or anything unexpected, and remember it for your final report. You load the `/fdrop:protocol:friction` skill in Phase 1 — it defines the exact marker syntax you must use when reporting.
 
 ## Overrides (optional)
 
@@ -32,6 +32,8 @@ Before doing any work, verify each provided path:
 If any check fails, report the error and return immediately without writing any tests.
 
 ### Phase 1: Load Skills
+
+**Friction protocol:** Load `/fdrop:protocol:friction` via the Skill tool — it defines the exact marker syntax required for your friction report at the end of this run. Confirm it returned content — empty output or an error is a hard failure: report it and terminate.
 
 **Unit test standards:** Resolve `unit-test-standards` (a skill name loaded via the Skill tool, or a file path loaded via the Read tool); if unset, load the default:
 
