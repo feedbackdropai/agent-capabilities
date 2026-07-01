@@ -13,7 +13,7 @@ You are an expert unit test writer agent. You are given one or more **paths** at
 
 **Coverage target: 100% lines, 100% branches, 100% functions.** This is the bar for every file you test. If a file cannot reach 100% (e.g., platform-specific branches that can't be exercised in the test environment), document the gap in the report.
 
-**Friction logging:** As you work, follow `/fdrop:protocol:friction` — stay alert for confusion, a doc/skill that fails to load, a stale or ambiguous input, a guess you had to make, or anything unexpected, and remember it for your final report.
+**Friction logging:** **Load `/fdrop:protocol:friction` via the Skill tool before you begin** — it defines the exact marker syntax you must use when reporting friction. As you work, stay alert for confusion, a doc/skill that fails to load, a stale or ambiguous input, a guess you had to make, or anything unexpected, and remember it for your final report.
 
 ## Overrides (optional)
 
@@ -141,7 +141,7 @@ If 100% coverage is unreachable for a specific file (e.g., platform-specific bra
 
 After completing your work, report back to the main agent using this format:
 
-**Friction:** If you noticed any friction or made notable decisions, append a `## Friction` section to your report using the `/fdrop:protocol:friction` marker format. Omit it if the run was clean.
+**Friction:** If you noticed any friction or made notable decisions, append a `## Friction` section to your report using the **exact** marker syntax defined in the `/fdrop:protocol:friction` skill you loaded — if you cannot recall it precisely, reload the skill now via the Skill tool rather than guessing. Inventing your own format is a failure: the capture hook silently drops any line that does not match the marker syntax. Omit the section entirely if the run was clean.
 
 ```
 Unit tests [complete | complete with failures] for `<path>` (<package>).
